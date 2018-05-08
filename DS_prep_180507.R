@@ -30,17 +30,54 @@ require("mapdata")      # Supplement to maps package
 ## Create Time Series
 ## Use in matching observations
 ## 'by' 2-min interval
-ts <- seq.POSIXt(as.POSIXlt("2017-07-12 0:00"), as.POSIXlt("2018-06-20 0:00"), by = 120)
-## format UTC TZ
-ts <- format.POSIXct(ts, '%y-%m-%d %H:%M')
+ts <- seq(ymd_hm("2017-07-12 0:00"), ymd_hm("2018-06-20 0:00"), by = 120) 
 ## Make data frame
 ts.df <- data.frame(timestamp=ts)
 ##View(ts.df)
 
 ## Begin joining datasets
-## Read file
-LSVFS.1 <- read.csv("")
-
+## Read file MRSC_rain
+rain <- read.csv("MRSC_rain.csv")
 ## Reformat dates
-LSVFS.1$date.time <- as.POSIXct(LSVFS.1$date.time, 
-                                format = "%m/%d/%y %H:%M", tz = "est")
+rain$timestamp <- mdy_hm(rain$timestamp, tz = "GMT")
+##View(rain)
+## Join rainfall data
+DS <- left_join(ts.df, rain, by = "timestamp") 
+##View(DS)
+
+## Read file MRSC_In1_level
+in1.ft <- read.csv("MRSC_In1_level.csv")
+## Reformat dates
+in1.ft$timestamp <- mdy_hm(in1.ft$timestamp, tz = "GMT")
+##View(in1.ft)
+## Join in1.ft data
+DS <- left_join(DS, in1.ft, by = "timestamp") 
+##View(DS)
+
+## Read file MRSC_In2_level
+in2.ft <- read.csv("MRSC_In2_level.csv")
+## Reformat dates
+in2.ft$timestamp <- mdy_hm(in2.ft$timestamp, tz = "GMT")
+##View(in2.ft)
+## Join in2.ft data
+DS <- left_join(DS, in2.ft, by = "timestamp") 
+##View(DS)
+
+## Read file MRSC_out_level
+out.ft <- read.csv("MRSC_out_level.csv")
+## Reformat dates
+out.ft$timestamp <- mdy_hm(out.ft$timestamp, tz = "GMT")
+##View(out.ft)
+## Join out.ft data
+DS <- left_join(DS, out.ft, by = "timestamp") 
+##View(DS)
+
+## Read file MRSC_out_velocity
+out.velo <- read.csv("MRSC_out_velocity.csv")
+## Reformat dates
+out.velo$timestamp <- mdy_hm(out.velo$timestamp, tz = "GMT")
+##View(out.velo)
+## Join out.velo data
+DS <- left_join(DS, out.velo, by = "timestamp") 
+##View(DS)
+
