@@ -1,6 +1,7 @@
 ## Analysis of Morrisville RSC data from Providance Farm, Mason Farm Road
 ## monitoring period July 2017-June 2018
-## data location in TBD
+## data location in ./Working
+## dataset preparation
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
