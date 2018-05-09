@@ -82,7 +82,6 @@ RainEvents<-split(Rain_Over_0, Rainindex)
 ## Calculates mean of Duration & Rainfall Accumulaiton 
 # Returns a data frame of values same length as list
 Rainsum <- RainEvents %>%
-  map_df(function(df) {summarise(df, Duration = max(timestamp)-min(timestamp),
+  map_df(function(df) {summarise(df, Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall))})
-#View(Rainsum)
 
