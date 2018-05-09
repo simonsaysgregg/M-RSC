@@ -58,6 +58,23 @@ DS.hydro.metric <- DS.hydro %>%
                              well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
+## Begin flow calculation
+# user defined functions
+# Inlet1 flow calculation
+flow.in1 <- function(in1.m) { 
+    if(in1.m < 0.1524){                                                             # determination of which weir calculation to use; stage in meters
+    in1.flow <- (1344 * (in1.m^2.5))                                                # V-notch flow
+  } else {
+    in1.flow <- (1344 * (0.5^2.5))+((3970.8 * (in1.m^1.5))-(1323.6 * (in1.m^2.5)))  # V-notch + retangular w/ contraction flow
+  }
+  
+}
+
+## Practice using mutate and function
+flow <- mutate(DS.hydro.metric, in1.flow = flow.in1(DS.hydro.metric$in1.m))
+
+View(flow)
+
 ## Prepare for Event Delineation
 # Replace rainfall NAs with 0
 DS.hydro.metric$rainfall[is.na(DS.hydro.metric$rainfall)] <- 0
