@@ -55,12 +55,6 @@ DS.hydro.metric <- DS.hydro %>%
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
-## Plot to view HOBO vs ISCO IN2 stage data
-ggplot(data = DS.hydro.metric)+
-  geom_line(aes(x=DS.hydro.metric$timestamp, y=DS.hydro.metric$in2.m, colour = DS.hydro.metric$in2.m))+
-  geom_line(aes(x=DS.hydro.metric$timestamp, y=DS.hydro.metric$in2.hobo.m))
-  
-
 ## Begin flow calculation
 # user defined functions
 # Inlet1 flow calculation function
@@ -79,9 +73,45 @@ flow.in2 <- function(in.m) {
   # FALSE V-notch + retangular w/ contraction flow
 }
 
+# Theta for pipe flow calculation function
+theta.out <- function(stage) { 
+  ifelse(stage < 0.1944, (2 * (acos((0.1944 - stage)/0.1944))), (2 * acos((0.1944 - (2 * 0.1944 - stage))/0.1944)))                      
+  # IFELSE determination if stage is less than culvert diameter; stage in meters                                             
+  # TRUE Calculate theta below r
+  # FALSE calculate theta above r
+}
+
+# Cross-Sectional Area determination of flow
+area.out <- function(theta){
+  (((0.1944^(2)) * (theta - sin(theta)))/2)
+}
+
+# Outlet flow function
+flow.out <- function(V,A){
+  ifelse(V < 0,0,(V * A))
+}
+  
+  
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
-         in2.m_flow = flow.in2(in2.m))
+         in2.m_flow = flow.in2(in2.m),
+         theta = theta.out(out.m),
+         area = area.out(theta),
+         out.flow = flow.out(out.velo,area))
+
 #View(DS.hydro.metric)
 
+## Create flow dataset
+DS.flow <- (DS.hydro.metric) %>%
+  select(timestamp, in1.m_flow, in2.m_flow, out.flow) 
+View(DS.flow)  
+
+## Melt Dataset
+DS.flow.melt <- (DS.flow) %>%
+  melt(id = "timestamp")
+View(DS.flow.melt)
+
+## Plot Flow
+ggplot(DS.flow.melt, aes(x = timestamp))+
+  geom_line(aes(y = value, colour = variable))
