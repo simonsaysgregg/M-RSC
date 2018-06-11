@@ -15,6 +15,7 @@ require("zoo")          # Helps streamline data if you have irregular time serie
 require("reshape2")     # Convert data with "wide" columns to "long" columns
 require("lubridate")    # Date and time data made easy! See reference PDF in Google Drive
 require("data.table")
+require("TTR")
 #require("xlsx")        # creates errors # Reads and writes to xlsx file
 require("purrr")
 require("tidyr")
@@ -51,7 +52,8 @@ DS.hydro.metric <- DS.hydro %>%
             in2.m = in2.ft * 0.3048,
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
-            out.velo = out.velo / 3.28084,
+            out.velo = out.velo * 0.3048,
+            out.velo.roll = rollapply(out.velo, 3, mean, fill = NA),
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
@@ -73,6 +75,7 @@ flow.in2 <- function(in.m) {
   # FALSE V-notch + retangular w/ contraction flow
 }
 
+# Outlet flow calculation
 # Theta for pipe flow calculation function
 theta.out <- function(stage) { 
   ifelse(stage < 0.1944, (2 * (acos((0.1944 - stage)/0.1944))), (2 * acos((0.1944 - (2 * 0.1944 - stage))/0.1944)))                      
@@ -88,7 +91,7 @@ area.out <- function(theta){
 
 # Outlet flow function
 flow.out <- function(V,A){
-  ifelse(V < 0,0,(V * A))
+  (V * A)
 }
   
   
@@ -98,8 +101,7 @@ DS.hydro.metric <- DS.hydro.metric %>%
          in2.m_flow = flow.in2(in2.m),
          theta = theta.out(out.m),
          area = area.out(theta),
-         out.flow = flow.out(out.velo,area))
-
+         out.flow = flow.out(out.velo.roll,area))
 #View(DS.hydro.metric)
 
 ## Create flow dataset
