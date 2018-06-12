@@ -53,7 +53,9 @@ DS.hydro.metric <- DS.hydro %>%
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
             out.velo = out.velo * 0.3048,
-            out.velo.roll = rollapply(out.velo, 3, mean, fill = NA),
+            out.velo.posi = out.sign(out.velo),
+            out.velo.roll = rollapply(out.velo, 10, mean, fill = NA),
+            out.velo.roll.posi = rollapply(out.velo.posi, 10, mean, fill = NA),
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
@@ -78,7 +80,7 @@ flow.in2 <- function(in.m) {
 # Outlet flow calculation
 # Theta for pipe flow calculation function
 theta.out <- function(stage) { 
-  ifelse(stage < 0.1944, (2 * (acos((0.1944 - stage)/0.1944))), (2 * acos((0.1944 - (2 * 0.1944 - stage))/0.1944)))                      
+  ifelse(stage < 0.9144, (2 * (acos((0.9144 - stage)/0.9144))), (2 * acos((0.9144 - (2 * 0.9144 - stage))/0.9144)))                      
   # IFELSE determination if stage is less than culvert diameter; stage in meters                                             
   # TRUE Calculate theta below r
   # FALSE calculate theta above r
@@ -86,7 +88,7 @@ theta.out <- function(stage) {
 
 # Cross-Sectional Area determination of flow
 area.out <- function(theta){
-  (((0.1944^(2)) * (theta - sin(theta)))/2)
+  (((0.9144^(2)) * (theta - sin(theta)))/2)
 }
 
 # Outlet flow function
@@ -94,6 +96,10 @@ flow.out <- function(V,A){
   (V * A)
 }
   
+# Outlet flow velocity sign change
+out.sign <- function(velo){
+  ifelse(velo<0, velo * (-1), velo)
+}
   
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
@@ -101,19 +107,25 @@ DS.hydro.metric <- DS.hydro.metric %>%
          in2.m_flow = flow.in2(in2.m),
          theta = theta.out(out.m),
          area = area.out(theta),
-         out.flow = flow.out(out.velo.roll,area))
+         out.flow.posi = flow.out(out.velo.posi, area),
+         out.flow.roll = flow.out(out.velo.roll, area),
+         out.flow.roll.posi = flow.out(out.velo.roll.posi, area))
 #View(DS.hydro.metric)
 
 ## Create flow dataset
 DS.flow <- (DS.hydro.metric) %>%
-  select(timestamp, in1.m_flow, in2.m_flow, out.flow) 
-View(DS.flow)  
+  select(timestamp, in1.m_flow, in2.m_flow, out.flow.posi, out.flow.roll, out.flow.roll.posi) 
+#View(DS.flow)  
 
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
   melt(id = "timestamp")
-View(DS.flow.melt)
+#View(DS.flow.melt)
 
 ## Plot Flow
 ggplot(DS.flow.melt, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
+
+## Plot Flow
+ggplot(DS.flow, aes(x = timestamp))+
+  geom_line(aes(y = out.flow.roll.posi))
