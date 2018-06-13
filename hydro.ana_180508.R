@@ -44,7 +44,8 @@ DS.hydro <- DS %>%
                    "in2.hobo.ft",
                    "out.ft",
                    "out.velo",
-                   "well.ft")
+                   "well.ft",
+                   "dryout.ft")
 
 ## Convert to metric units 
 DS.hydro.metric <- DS.hydro %>%
@@ -54,8 +55,9 @@ DS.hydro.metric <- DS.hydro %>%
                              in2.m = in2.ft * 0.3048,
                              in2.hobo.m = in2.hobo.ft * 0.3048,
                              out.m = out.ft * 0.3048,
-                             out.velo = out.velo / 3.28084,
-                             well.m = well.ft * 0.3048)
+                             out.velo = out.velo * 0.3048,
+                             well.m = well.ft * 0.3048,
+                             dryout,m = dryout.ft * 0.3048)
 # View(DS.hydro.metric)
 
 
