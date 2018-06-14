@@ -55,9 +55,7 @@ DS.hydro.metric <- DS.hydro %>%
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
             out.velo = out.velo * 0.3048,
-            out.velo.posi = out.sign(out.velo),
             out.velo.roll = rollapply(out.velo, 10, mean, fill = NA),
-            out.velo.roll.posi = rollapply(out.velo.posi, 10, mean, fill = NA),
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
@@ -92,34 +90,49 @@ flow.out <- function(V,A){
 }
   
 # Outlet flow velocity sign change
-out.sign <- function(velo){
-  ifelse(velo<0, velo * (-1), velo)
-}
+#out.sign <- function(velo){
+ # ifelse(velo<0, velo * (-1), velo)
+#}
   
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
          in2.m_flow = flow.in2(in2.m),
+         in2.hobo.m_flow = flow.in2(in2.hobo.m),
          area.ASABE = area.out.ASABE(out.m),
-         out.flow.posi.ASABE = flow.out(out.velo.posi, area.ASABE),
-         out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE),
-         out.flow.roll.posi.ASABE = flow.out(out.velo.roll.posi, area.ASABE))
+         out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE))
 #View(DS.hydro.metric)
 
 ## Create flow dataset
 DS.flow <- (DS.hydro.metric) %>%
-  select(timestamp, in1.m_flow, in2.m_flow,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
+  select(timestamp, 
+         in1.m_flow, 
+         in2.m_flow, 
+         in2.hobo.m_flow, 
+         out.flow.roll.ASABE) 
 #View(DS.flow)  
 
 ## Create outlet flow dataset
 DS.outflow <- (DS.hydro.metric) %>%
-  select(timestamp,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
+  select(timestamp,
+         out.flow.roll.ASABE) 
 #View(DS.flow)  
 
 ## Create a flow dataset: exp
 DS.flow.exp <- (DS.hydro.metric) %>%
-  select(timestamp, in1.m_flow, in2.m_flow, out.flow.roll.ASABE) 
+  select(timestamp, 
+         in1.m_flow, 
+         in2.m_flow, 
+         out.flow.roll.ASABE) 
 #View(DS.flow.exp)  
+
+## Create a INflow dataset
+DS.inflow <- (DS.hydro.metric) %>%
+  select(timestamp, 
+         in1.m_flow, 
+         in2.m_flow, 
+         in2.hobo.m_flow) 
+#View(DS.inflow)  
 
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
@@ -136,6 +149,11 @@ DS.flow.melt.exp <- (DS.flow.exp) %>%
   melt(id = "timestamp")
 #View(DS.flow.melt.exp)
 
+## Melt inflow Dataset 
+DS.inflow <- (DS.inflow) %>%
+  melt(id = "timestamp")
+#View(DS.inflow)
+
 ## Plot Flow
 ggplot(DS.flow.melt, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
@@ -146,5 +164,9 @@ ggplot(DS.outflow.melt, aes(x = timestamp))+
 
 ## Plot Flow
 ggplot(DS.flow.melt.exp, aes(x = timestamp))+
+  geom_line(aes(y = value, colour = variable))
+
+## Plot inFlow
+ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 
