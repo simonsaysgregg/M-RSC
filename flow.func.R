@@ -170,3 +170,6 @@ ggplot(DS.flow.melt.exp, aes(x = timestamp))+
 ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 
+## Decide to use DS.flow for remainder of calculations
+## Write .csv file for use in analysis
+write.csv(DS.flow, "./Working/flow.dataset.csv")
