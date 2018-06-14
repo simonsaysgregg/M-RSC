@@ -38,6 +38,7 @@ DS.hydro <- DS %>%
   select("timestamp",
          "rain.in",
          "in1.ft",
+         "dryout.ft",
          "in2.ft",
          "in2.hobo.ft",
          "out.ft",
@@ -49,6 +50,7 @@ DS.hydro.metric <- DS.hydro %>%
   transmute(timestamp = timestamp,
             rainfall = rain.in * 25.4,
             in1.m = in1.ft * 0.3048,
+            dryout.m = dryout.ft * 0.3048,
             in2.m = in2.ft * 0.3048,
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
@@ -91,6 +93,12 @@ area.out <- function(theta){
   (((0.9144^(2)) * (theta - sin(theta)))/2)
 }
 
+# Alternative area determination
+# from ASABE Soil and Water Conservation ENGR
+area.out.ASABE <- function(stage){
+  ((0.9144^2) * acos((0.9144 - stage)/0.9144)) - ((0.9144 - stage) * sqrt(2*0.9144*stage - (stage^2))) 
+}
+
 # Outlet flow function
 flow.out <- function(V,A){
   (V * A)
@@ -107,25 +115,54 @@ DS.hydro.metric <- DS.hydro.metric %>%
          in2.m_flow = flow.in2(in2.m),
          theta = theta.out(out.m),
          area = area.out(theta),
+         area.ASABE = area.out.ASABE(out.m),
          out.flow.posi = flow.out(out.velo.posi, area),
          out.flow.roll = flow.out(out.velo.roll, area),
-         out.flow.roll.posi = flow.out(out.velo.roll.posi, area))
+         out.flow.roll.posi = flow.out(out.velo.roll.posi, area),
+         out.flow.posi.ASABE = flow.out(out.velo.posi, area.ASABE),
+         out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE),
+         out.flow.roll.posi.ASABE = flow.out(out.velo.roll.posi, area.ASABE))
 #View(DS.hydro.metric)
 
 ## Create flow dataset
 DS.flow <- (DS.hydro.metric) %>%
-  select(timestamp, in1.m_flow, in2.m_flow, out.flow.posi, out.flow.roll, out.flow.roll.posi) 
+  select(timestamp, in1.m_flow, in2.m_flow, out.flow.posi, out.flow.roll, out.flow.roll.posi,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
 #View(DS.flow)  
+
+## Create outlet flow dataset
+DS.outflow <- (DS.hydro.metric) %>%
+  select(timestamp, out.flow.posi, out.flow.roll, out.flow.roll.posi,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
+#View(DS.flow)  
+
+## Create a flow dataset: exp
+DS.flow.exp <- (DS.hydro.metric) %>%
+  select(timestamp, in1.m_flow, in2.m_flow, out.flow.roll.ASABE) 
+#View(DS.flow.exp)  
 
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
   melt(id = "timestamp")
 #View(DS.flow.melt)
 
+## Melt outflow Dataset
+DS.outflow.melt <- (DS.outflow) %>%
+  melt(id = "timestamp")
+#View(DS.outflow.melt)
+
+## Melt flow Dataset exp
+DS.flow.melt.exp <- (DS.flow.exp) %>%
+  melt(id = "timestamp")
+#View(DS.flow.melt.exp)
+
 ## Plot Flow
 ggplot(DS.flow.melt, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 
 ## Plot Flow
-ggplot(DS.flow, aes(x = timestamp))+
-  geom_line(aes(y = out.flow.roll.posi))
+ggplot(DS.outflow.melt, aes(x = timestamp))+
+  geom_line(aes(y = value, colour = variable))
+
+## Plot Flow
+ggplot(DS.flow.melt.exp, aes(x = timestamp))+
+  geom_line(aes(y = value, colour = variable))
+
