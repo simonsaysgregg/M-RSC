@@ -80,20 +80,7 @@ flow.in2 <- function(in.m) {
 }
 
 # Outlet flow calculation
-# Theta for pipe flow calculation function
-theta.out <- function(stage) { 
-  ifelse(stage < 0.9144, (2 * (acos((0.9144 - stage)/0.9144))), (2 * acos((0.9144 - (2 * 0.9144 - stage))/0.9144)))                      
-  # IFELSE determination if stage is less than culvert diameter; stage in meters                                             
-  # TRUE Calculate theta below r
-  # FALSE calculate theta above r
-}
-
-# Cross-Sectional Area determination of flow
-area.out <- function(theta){
-  (((0.9144^(2)) * (theta - sin(theta)))/2)
-}
-
-# Alternative area determination
+# ASABE area determination
 # from ASABE Soil and Water Conservation ENGR
 area.out.ASABE <- function(stage){
   ((0.9144^2) * acos((0.9144 - stage)/0.9144)) - ((0.9144 - stage) * sqrt(2*0.9144*stage - (stage^2))) 
@@ -113,12 +100,7 @@ out.sign <- function(velo){
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
          in2.m_flow = flow.in2(in2.m),
-         theta = theta.out(out.m),
-         area = area.out(theta),
          area.ASABE = area.out.ASABE(out.m),
-         out.flow.posi = flow.out(out.velo.posi, area),
-         out.flow.roll = flow.out(out.velo.roll, area),
-         out.flow.roll.posi = flow.out(out.velo.roll.posi, area),
          out.flow.posi.ASABE = flow.out(out.velo.posi, area.ASABE),
          out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE),
          out.flow.roll.posi.ASABE = flow.out(out.velo.roll.posi, area.ASABE))
@@ -126,12 +108,12 @@ DS.hydro.metric <- DS.hydro.metric %>%
 
 ## Create flow dataset
 DS.flow <- (DS.hydro.metric) %>%
-  select(timestamp, in1.m_flow, in2.m_flow, out.flow.posi, out.flow.roll, out.flow.roll.posi,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
+  select(timestamp, in1.m_flow, in2.m_flow,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
 #View(DS.flow)  
 
 ## Create outlet flow dataset
 DS.outflow <- (DS.hydro.metric) %>%
-  select(timestamp, out.flow.posi, out.flow.roll, out.flow.roll.posi,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
+  select(timestamp,out.flow.posi.ASABE, out.flow.roll.ASABE, out.flow.roll.posi.ASABE) 
 #View(DS.flow)  
 
 ## Create a flow dataset: exp
