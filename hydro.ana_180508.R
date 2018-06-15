@@ -62,43 +62,30 @@ RSC.hydro.m <- (RSC.hydro.m) %>%
                        in1.m_flow,
                        in2.m_flow,
                        in2.hobo.m_flow,
-                       out.flow.roll.ASABE) %>%
-                mutate(index= 1:n())
+                       out.flow.roll.ASABE) #%>%
+               # mutate(index= 1:n())
 # View(RSC.hydro.m)
 
 ## Remove extra data; only rain and time stamp for delineation
 RSC.rain <- (RSC.hydro.m) %>%
   select(timestamp,
-         rainfall) %>%
-  mutate(index = 1:n())
+         rainfall) #%>%
+  #mutate(index = 1:n())
 # View(RSC.rain)
 
+# Prep for evnet delineation
+# Exstract from Drizzle0.9.5
+depth <- RSC.rain$rainfall
+depth[depth == 0] <- NA
+nalocf <- function(x) na.locf(x, maxgap = 360, na.rm = FALSE)
 
-## Prepare for Event Delineation
-# Replace rainfall NAs with 0
-RSC.rain$rainfall[is.na(RSC.rain$rainfall)] <- 0
-# View(RSC.hydro.m)
+index <- cumsum(diff(!is.na(c(NA, nalocf(depth)))) > 0) + nalocf(0*depth)
 
-## Delineate Events
-# Code found online
-# column 1 is time stamp in POSIXct format, 
-# column 2 is rainfall depth; current data interval: two minute
-# Change accordingly, units minutes
-Rain_Over_0<- RSC.rain[RSC.rain[,2] !=0,]
-# Rename columns so as to not interfer with future functions
-colnames(Rain_Over_0) <- c("timestamp.false", "rainfall.false", "index")
-# Rejoin Rain_Over_0 to complete data set for vector creation using index
-## Combine data sets via index
-RSC.del <- left_join(RSC.hydro.m, Rain_Over_0, by = "index")
-# View(RSC.del)
-
-# Create vector increasing by 1 as Diff=>60 (Time specific) 
-# change value of Diff here to change the Minimum Interval Time (MIT)
-# input your value of MIT (in minutes); current MIT: 720 (12-hours).
-Rainindex<-c(1,(cumsum(diff(RSC.del[,8]))>720)) 
+## Addend index to file to be delineated
+RSC.hydro.m[,"index"] <- index
 
 # Split into list of events
-RainEvents<-split(Rain_Over_0, f = Rainindex) 
+RainEvents<-split(RSC.hydro.m, index) 
 # Returns a list of events 
 # Use sapply functions to determine the rain statistics 
 # View(RainEvents)
