@@ -95,5 +95,8 @@ RainEvents<-split(RSC.hydro.m, index)
 Rainsum <- RainEvents %>%
   map_df(function(df) {summarise(df, Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall),
-                                 in1.vol = sum(in1.m_flow) * (Duration * 3600))})
+                                 in1.vol = sum(in1.m_flow) * (Duration * 3600),
+                                 in2.vol = sum(in2.m_flow) * (Duration * 3600),
+                                 out.vol = sum(out.flow.roll.ASABE) * (Duration * 3600),
+                                 in.sum = (in1.vol + in2.vol))})
 # View(Rainsum)
