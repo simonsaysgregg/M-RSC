@@ -27,6 +27,42 @@ require("ggmap")        # Plotting of maps same as you would with ggplot2
 require("maptools")     # Read, write, and handle Shapefiles in R
 require("mapdata")      # Supplement to maps package
 
+##Begin user defined functions###########################################
+## For flow calculation
+# Inlet1 flow calculation function
+flow.in1 <- function(in.m) { 
+  ifelse(in.m < 0.1524, (1344 * (in.m^2.5)), ((1344 * (0.1524^2.5))+((3970.8 * (in.m^1.5))-(1323.6 * (in.m^2.5)))))                      
+  # IFELSE determination of which weir calculation to use; stage in meters                                             
+  # TRUE V-notch flow
+  # FALSE V-notch + retangular w/ contraction flow
+}
+
+# Inlet2 flow calculation function
+flow.in2 <- function(in.m) { 
+  ifelse(in.m < 0.0889, (2868 * (in.m^2.5)), ((2868 * (0.0889^2.5))+((7279.8 * (in.m^1.5))-(2647.2 * (in.m^2.5)))))                      
+  # IFELSE determination of which weir calculation to use; stage in meters                                             
+  # TRUE V-notch flow
+  # FALSE V-notch + retangular w/ contraction flow
+}
+
+# Outlet flow calculation
+# ASABE area determination
+# from ASABE Soil and Water Conservation ENGR
+area.out.ASABE <- function(stage){
+  ((0.9144^2) * acos((0.9144 - stage)/0.9144)) - ((0.9144 - stage) * sqrt(2*0.9144*stage - (stage^2))) 
+}
+
+# Outlet flow function
+flow.out <- function(V,A){
+  (V * A)
+}
+
+# Outlet flow velocity sign change        ## No longer in use
+#out.sign <- function(velo){
+# ifelse(velo<0, velo * (-1), velo)
+#}
+## End user defined functions##############################################
+
 ## Read file from ./Working folder
 DS <- read.csv("./Working/dataset.csv")
 # View(DS)
@@ -59,41 +95,6 @@ DS.hydro.metric <- DS.hydro %>%
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
-## Begin flow calculation
-# user defined functions
-# Inlet1 flow calculation function
-flow.in1 <- function(in.m) { 
-  ifelse(in.m < 0.1524, (1344 * (in.m^2.5)), ((1344 * (0.1524^2.5))+((3970.8 * (in.m^1.5))-(1323.6 * (in.m^2.5)))))                      
-  # IFELSE determination of which weir calculation to use; stage in meters                                             
-  # TRUE V-notch flow
-  # FALSE V-notch + retangular w/ contraction flow
-}
-
-# Inlet2 flow calculation function
-flow.in2 <- function(in.m) { 
-  ifelse(in.m < 0.0889, (2868 * (in.m^2.5)), ((2868 * (0.0889^2.5))+((7279.8 * (in.m^1.5))-(2647.2 * (in.m^2.5)))))                      
-  # IFELSE determination of which weir calculation to use; stage in meters                                             
-  # TRUE V-notch flow
-  # FALSE V-notch + retangular w/ contraction flow
-}
-
-# Outlet flow calculation
-# ASABE area determination
-# from ASABE Soil and Water Conservation ENGR
-area.out.ASABE <- function(stage){
-  ((0.9144^2) * acos((0.9144 - stage)/0.9144)) - ((0.9144 - stage) * sqrt(2*0.9144*stage - (stage^2))) 
-}
-
-# Outlet flow function
-flow.out <- function(V,A){
-  (V * A)
-}
-  
-# Outlet flow velocity sign change
-#out.sign <- function(velo){
- # ifelse(velo<0, velo * (-1), velo)
-#}
-  
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
