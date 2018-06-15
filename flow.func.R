@@ -49,7 +49,7 @@ flow.in2 <- function(in.m) {
 # ASABE area determination
 # from ASABE Soil and Water Conservation ENGR
 area.out.ASABE <- function(stage){
-  ((0.9144^2) * acos((0.9144 - stage)/0.9144)) - ((0.9144 - stage) * sqrt(2*0.9144*stage - (stage^2))) 
+  ((1.2192^2) * acos((1.2192 - stage)/1.2192)) - ((1.2192 - stage) * sqrt(2*1.2192*stage - (stage^2))) 
 }
 
 # Outlet flow function
