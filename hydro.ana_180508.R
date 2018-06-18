@@ -77,15 +77,23 @@ RSC.rain <- (RSC.hydro.m) %>%
 # Exstract from Drizzle0.9.5
 depth <- RSC.rain$rainfall
 depth[depth == 0] <- NA
-nalocf <- function(x) na.locf(x, maxgap = 360, na.rm = FALSE)
+nalocf <- function(x) na.locf(x, maxgap = 359, na.rm = FALSE)
 
-index <- cumsum(diff(!is.na(c(NA, nalocf(depth)))) > 0) + nalocf(0*depth)
+rain.index <- cumsum(diff(!is.na(c(NA, nalocf(depth)))) > 0) + nalocf(0*depth)
 
-## Addend index to file to be delineated
-RSC.hydro.m[,"index"] <- index
+## Addend rain index to file to be delineated
+RSC.hydro.m[,"rain.index"] <- rain.index
+
+############### Possible usage to extend delineation for drawdown period
+## Extend rain.idex for drawdown period of 12 hours
+#storm.index <- na.fill(RSC.hydro.m$rain.index, fill = )
+
+## Addend rain index to file to be delineated
+#RSC.hydro.m[,"storm.index"] <- storm.index
+################
 
 # Split into list of events
-RainEvents<-split(RSC.hydro.m, index) 
+RainEvents<-split(RSC.hydro.m, rain.index) 
 # Returns a list of events 
 # Use sapply functions to determine the rain statistics 
 # View(RainEvents)
