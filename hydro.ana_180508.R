@@ -62,40 +62,50 @@ RSC.hydro.m <- (RSC.hydro.m) %>%
                        in1.m_flow,
                        in2.m_flow,
                        in2.hobo.m_flow,
-                       out.flow.roll.ASABE) #%>%
-               # mutate(index= 1:n())
+                       out.flow.roll.ASABE) 
 # View(RSC.hydro.m)
 
 ## Remove extra data; only rain and time stamp for delineation
 RSC.rain <- (RSC.hydro.m) %>%
   select(timestamp,
-         rainfall) #%>%
-  #mutate(index = 1:n())
+         rainfall)
 # View(RSC.rain)
 
-# Prep for evnet delineation
+## Rainfall event delineation
 # Exstract from Drizzle0.9.5
 depth <- RSC.rain$rainfall
 depth[depth == 0] <- NA
 nalocf <- function(x) na.locf(x, maxgap = 359, na.rm = FALSE)
-
 rain.index <- cumsum(diff(!is.na(c(NA, nalocf(depth)))) > 0) + nalocf(0*depth)
 
 ## Addend rain index to file to be delineated
 RSC.hydro.m[,"rain.index"] <- rain.index
 
-############### Possible usage to extend delineation for drawdown period
-## Extend rain.idex for drawdown period of 12 hours
-#storm.index <- na.fill(RSC.hydro.m$rain.index, fill = )
+## Runoff event delineation
+# Extend rain.idex for drawdown period of 12 hours in present case
+# to change drawdown change DD; depends of data interval (DD.in.hours*60)/data.interval.in.minutes
+runoff.del <- function(x, DD=362) {
+  l <- cumsum(! is.na(x))
+  c(NA, x[! is.na(x)])[replace(l, ave(l, l, FUN=seq_along) > DD, 0) + 1]
+}
+# vetor to process
+k <- RSC.hydro.m$rain.index
+# function operation
+RSC.hydro.m$storm.index <- runoff.del(k)
 
-## Addend rain index to file to be delineated
-#RSC.hydro.m[,"storm.index"] <- storm.index
-################
+## Replace NAs with zero
+# rain index
+RSC.hydro.m$rain.index <- (RSC.hydro.m$rain.index) %>%
+                           replace_na(0)
+# View(RSC.hydro.m)
+# storm index
+RSC.hydro.m$storm.index <- (RSC.hydro.m$storm.index) %>%
+                            replace_na(0)
+# View(RSC.hydro.m)
 
-# Split into list of events
-RainEvents<-split(RSC.hydro.m, rain.index) 
+## Split into list of events
+RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index) 
 # Returns a list of events 
-# Use sapply functions to determine the rain statistics 
 # View(RainEvents)
 
 ## Calculates mean of Duration & Rainfall Accumulaiton 
