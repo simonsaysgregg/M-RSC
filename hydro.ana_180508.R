@@ -64,6 +64,7 @@ RSC.hydro.m <- (RSC.hydro.m) %>%
                        rainfall,
                        int.5min,
                        in1.m_flow,
+                       dryout.m_flow,
                        in2.m_flow,
                        in2.hobo.m_flow,
                        out.flow.roll.ASABE) 
