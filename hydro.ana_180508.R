@@ -49,7 +49,10 @@ DS.rain.metric <- DS %>%
             select("timestamp",
                    "rain.in") %>%
             transmute(timestamp = timestamp,
-                      rainfall = rain.in * 25.4)
+                      rainfall = rain.in * 25.4,
+                      int.5min = (DS.rain.metric$rainfall + lag(DS.rain.metric$rainfall) + 
+                                    (0.5*(apply(cbind((lag(DS.rain.metric$rainfall, 2)), lead(DS.rain.metric$rainfall)), 1, max))))*12
+            )
 # View(DS.rain.metric)
 
 ## Combine rainfall with flow data set
@@ -58,8 +61,10 @@ RSC.hydro.m <- left_join(DS.rain.metric, DS.flow, by = "timestamp")
 ## Remove extra position column
 RSC.hydro.m <- (RSC.hydro.m) %>%
                 select(timestamp,
-                       rainfall, 
+                       rainfall,
+                       int.5min,
                        in1.m_flow,
+                       dryout.m_flow,
                        in2.m_flow,
                        in2.hobo.m_flow,
                        out.flow.roll.ASABE) 
@@ -113,6 +118,7 @@ RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index)
 Rainsum <- RainEvents %>%
   map_df(function(df) {summarise(df, Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall),
+                                 max.intensity5 = max(int.5min),
                                  in1.vol = sum(in1.m_flow) * (Duration * 3600),
                                  in2.vol = sum(in2.m_flow) * (Duration * 3600),
                                  out.vol = sum(out.flow.roll.ASABE) * (Duration * 3600),

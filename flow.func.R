@@ -57,11 +57,18 @@ flow.out <- function(V,A){
   (V * A)
 }
 
-# Outlet flow velocity sign change        ## No longer in use
-#out.sign <- function(velo){
-# ifelse(velo<0, velo * (-1), velo)
-#}
-## End user defined functions##############################################
+# Dry pond outlet discharge estimation
+# General function for compound outlet structure
+# inv.diff == difference btw multi flow control structures 
+# current case: orfice + wier
+flow.dryout <- function(dryout, inv.diff = 2.17) { 
+  ## modify following equaiton for drypond outlet
+  # Hobo 2.16667' below west broad cret weir
+  # rolling average to scrub noise of movement
+  ifelse(dryout < inv.diff, (2868 * (in.m^2.5)), ((2868 * (0.0889^2.5))+((7279.8 * (in.m^1.5))-(2647.2 * (in.m^2.5)))))     
+}
+  
+  ## End user defined functions##############################################
 
 ## Read file from ./Working folder
 DS <- read.csv("./Working/dataset.csv")
@@ -98,6 +105,7 @@ DS.hydro.metric <- DS.hydro %>%
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
+         dryout.m_flow = flow.dryout(dryout.m),
          in2.m_flow = flow.in2(in2.m),
          in2.hobo.m_flow = flow.in2(in2.hobo.m),
          area.ASABE = area.out.ASABE(out.m),
@@ -107,18 +115,20 @@ DS.hydro.metric <- DS.hydro.metric %>%
 ## Create flow dataset
 DS.flow <- (DS.hydro.metric) %>%
   select(timestamp, 
-         in1.m_flow, 
+         in1.m_flow,
+         dryout.m_flow,
          in2.m_flow, 
          in2.hobo.m_flow, 
          out.flow.roll.ASABE) 
 #View(DS.flow)  
 
 ## Create outlet flow dataset
+# experimental: to determine method of velocity processing: see beyond
+############ 
 DS.outflow <- (DS.hydro.metric) %>%
   select(timestamp,
          out.flow.roll.ASABE) 
 #View(DS.flow)  
-
 ## Create a flow dataset: exp
 DS.flow.exp <- (DS.hydro.metric) %>%
   select(timestamp, 
@@ -126,7 +136,6 @@ DS.flow.exp <- (DS.hydro.metric) %>%
          in2.m_flow, 
          out.flow.roll.ASABE) 
 #View(DS.flow.exp)  
-
 ## Create a INflow dataset
 DS.inflow <- (DS.hydro.metric) %>%
   select(timestamp, 
@@ -134,42 +143,35 @@ DS.inflow <- (DS.hydro.metric) %>%
          in2.m_flow, 
          in2.hobo.m_flow) 
 #View(DS.inflow)  
-
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
   melt(id = "timestamp")
 #View(DS.flow.melt)
-
 ## Melt outflow Dataset
 DS.outflow.melt <- (DS.outflow) %>%
   melt(id = "timestamp")
 #View(DS.outflow.melt)
-
 ## Melt flow Dataset exp
 DS.flow.melt.exp <- (DS.flow.exp) %>%
   melt(id = "timestamp")
 #View(DS.flow.melt.exp)
-
 ## Melt inflow Dataset 
 DS.inflow <- (DS.inflow) %>%
   melt(id = "timestamp")
 #View(DS.inflow)
-
 ## Plot Flow
 ggplot(DS.flow.melt, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
-
 ## Plot Flow
 ggplot(DS.outflow.melt, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
-
 ## Plot Flow
 ggplot(DS.flow.melt.exp, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
-
 ## Plot inFlow
 ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
+######### End ^^^^^^^
 
 ## Decide to use DS.flow for remainder of calculations
 ## Write .csv file for use in analysis
