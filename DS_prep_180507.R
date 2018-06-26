@@ -18,6 +18,7 @@ require("zoo")          # Helps streamline data if you have irregular time serie
 require("reshape2")     # Convert data with "wide" columns to "long" columns
 require("lubridate")    # Date and time data made easy! See reference PDF in Google Drive
 require("data.table")
+require("TTR")
 #require("xlsx")        # creates errors # Reads and writes to xlsx file
 require("purrr")
 require("tidyr")
