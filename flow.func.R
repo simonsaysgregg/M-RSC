@@ -75,6 +75,37 @@ DS <- read.csv("./Working/dataset.csv")
 # View(DS)
 # Format date time
 DS$timestamp <- ymd_hms(DS$timestamp)
+  
+
+## Rainfall normalization 
+# select columns
+rain.norm <- DS %>%
+  select("timestamp",
+         "rain.in")
+#View(rain.norm)
+# filter rows matching date periods for manual rain gauge measurements
+rain1 <- rain.norm %>%
+  subset(timestamp >= "2017-07-19 08:00" & timestamp <= "2017-09-15 07:58")
+#View(rain1)
+# sum rain fall to determine normalization factor
+#sum(rain1$rain.in)
+# returns: 6.51
+# normalize by 3.71/6.51
+rain1.norm <- rain1 %>%
+  mutate(rain.in.norm = rain.in * (3.71/6.51))
+#View(rain1.norm)
+
+# filter rows matching date periods for manual rain gauge measurements
+rain1 <- rain.norm %>%
+  subset(timestamp >= "2017-07-19 08:00" & timestamp <= "2017-09-15 07:58")
+#View(rain1)
+# sum rain fall to determine normalization factor
+#sum(rain1$rain.in)
+# returns: 6.51
+# normalize by 3.71/6.51
+rain1.norm <- rain1 %>%
+  mutate(rain.in.norm = rain.in * (3.71/6.51))
+#View(rain1.norm)
 
 ## Select columns for hyrology analysis
 DS.hydro <- DS %>%
