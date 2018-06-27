@@ -61,11 +61,14 @@ flow.out <- function(V,A){
 # General function for compound outlet structure
 # inv.diff == difference btw multi flow control structures 
 # current case: orfice + wier
-flow.dryout <- function(dryout, inv.diff = 2.17) { 
+flow.dryout <- function(dryout.m, Cd = 0.6, inv.diff = 0.66142, area.orf.m = 0.00814, grav = 9.8, Cw = 3.0) { 
   ## modify following equaiton for drypond outlet
-  # Hobo 2.16667' below west broad cret weir
+  # Hobo 2.16667' (0.66142m) below west broad cret weir
+  # Hobo 1.537' (0.4685m) below orfice center
+  # weir crest 0.633' (0.1929m) above orfice center
+  # two orifi
   # rolling average to scrub noise of movement
-  ifelse(dryout < inv.diff, (2868 * (in.m^2.5)), ((2868 * (0.0889^2.5))+((7279.8 * (in.m^1.5))-(2647.2 * (in.m^2.5)))))     
+  ifelse(dryout.m < inv.diff, ((Cd * area.orf.m * 2) * sqrt(2 * grav * (dryout.m - 0.4685))), ((Cd * area.orf.m * 2) * sqrt(2 * grav * (0.1929)) + (Cw * ((dryout.m - inv.diff)^2.5))))     
 }
   
   ## End user defined functions##############################################
@@ -186,9 +189,9 @@ DS.hydro <- DS %>%
 ## Convert to metric units 
 DS.hydro.metric <- DS.hydro %>%
   transmute(timestamp = timestamp,
-            rainfall = rain.in * 25.4,
+            rainfall = rain.in.norm * 25.4,
             in1.m = in1.ft * 0.3048,
-            dryout.m = dryout.ft * 0.3048,
+            dryout.m = rollapply(dryout.ft, 5, mean, fill = NA) * 0.3048,
             in2.m = in2.ft * 0.3048,
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
@@ -266,7 +269,7 @@ ggplot(DS.flow.melt.exp, aes(x = timestamp))+
 ## Plot inFlow
 ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
-######### End ^^^^^^^
+############
 
 ## Decide to use DS.flow for remainder of calculations
 ## Write .csv file for use in analysis
