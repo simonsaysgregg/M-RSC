@@ -61,14 +61,15 @@ flow.out <- function(V,A){
 # General function for compound outlet structure
 # inv.diff == difference btw multi flow control structures 
 # current case: orfice + wier
-flow.dryout <- function(dryout.m, Cd = 0.6, inv.diff = 0.66142, area.orf.m = 0.00814, grav = 9.8, Cw = 3.0) { 
+flow.dryout <- function(dryout.m, Cd = 0.6, inv.diff = 0.66142, area.orf.m = 0.0081, grav = 9.8, Cw = 3.0, L = 4.237) { 
   ## modify following equaiton for drypond outlet
   # Hobo 2.16667' (0.66142m) below west broad cret weir
   # Hobo 1.537' (0.4685m) below orfice center
   # weir crest 0.633' (0.1929m) above orfice center
+  # weir crest length 13.9' (4.237m)
   # two orifi
   # rolling average to scrub noise of movement
-  ifelse(dryout.m < inv.diff, ((Cd * area.orf.m * 2) * sqrt(2 * grav * (dryout.m - 0.4685))), ((Cd * area.orf.m * 2) * sqrt(2 * grav * (0.1929)) + (Cw * ((dryout.m - inv.diff)^2.5))))     
+  ifelse(dryout.m < inv.diff, ((Cd * area.orf.m) * sqrt(2 * grav * (dryout.m - 0.4685))) * 2, ((((Cd * area.orf.m) * sqrt(2 * grav * (0.1929))) * 2) + (Cw * L * ((dryout.m - inv.diff)^1.5))))     
 }
   
   ## End user defined functions##############################################
