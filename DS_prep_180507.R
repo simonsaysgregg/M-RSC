@@ -99,7 +99,8 @@ DS <- left_join(DS, out.velo, by = "timestamp")
 ## add additional collection dates to this vector as files are added to analysis
 dates=c("170712", "170718", "170915", "171002", "171013", "171018", "171031", 
         "171110", "171206", "180108", "180122", "180131", "180215", "180304",
-        "180328", "180405", "180423", "180508", "180521", "180528", "180611")
+        "180328", "180405", "180423", "180508", "180521", "180528", "180611",
+        "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -109,7 +110,7 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","in2.F","in2.hobo.ft")                            ##Name all columns
   assign(paste0("List",i),use)                                                  ##Assign names for each list
 }
-total=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15,List16,List17,List18,List19,List20,List21)          ##Row bind all of the fingerprint files
+total=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15,List16,List17,List18,List19,List20,List21,List22)          ##Row bind all of the fingerprint files
 fact = total[match(unique(total$timestamp), total$timestamp),]    
 in2 <- fact
 
@@ -118,7 +119,8 @@ in2 <- fact
 ## add additional collection dates to this vector as files are added to analysis
 dates=c("170712", "170718", "170823", "170911", "170915", "171002", "171013", "171018", "171031", 
         "171110", "171206", "180108", "180122", "180131", "180215", "180304",
-        "180328", "180405", "180423", "180508", "180521", "180528", "180611")
+        "180328", "180405", "180423", "180508", "180521", "180528", "180611",
+        "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -128,7 +130,7 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","atm.F")                                        ##Name all columns
   assign(paste0("List",i),use)                                                ##Assign names for each list
 }
-total1=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15,List16,List17,List18,List19,List20,List21,List22,List23)          ##Row bind all of the fingerprint files
+total1=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15,List16,List17,List18,List19,List20,List21,List22,List23,List24)          ##Row bind all of the fingerprint files
 fact1 = total1[match(unique(total1$timestamp), total1$timestamp),]    
 atm <- fact1
 
@@ -136,7 +138,7 @@ atm <- fact1
 ## create vector of dates when data was collected
 ## add additional collection dates to this vector as files are added to analysis
 dates=c("171031", "171110", "171206", "180108", "180122", "180131", "180215", "180304",
-        "180328", "180405", "180423", "180508", "180521", "180528", "180611")
+        "180328", "180405", "180423", "180508", "180521", "180528", "180611", "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -146,7 +148,7 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","well.F", "well.ft" )                           ##Name all columns
   assign(paste0("List",i),use)                                                ##Assign names for each list
 }
-total2=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15)          ##Row bind all of the fingerprint files
+total2=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12,List13,List14,List15,List16)          ##Row bind all of the fingerprint files
 fact2 = total2[match(unique(total2$timestamp), total2$timestamp),]    
 well <- fact2
 
@@ -154,7 +156,8 @@ well <- fact2
 ## create vector of dates when data was collected
 ## add additional collection dates to this vector as files are added to analysis
 dates=c("171018", "171031", "171110", "180223", "180304",
-        "180328", "180405", "180423", "180508", "180528", "180611")
+        "180328", "180405", "180423", "180508", "180528", "180611",
+        "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -164,7 +167,7 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","in1.F")                                             ##Name all columns
   assign(paste0("List",i),use)                                                     ##Assign names for each list
 }
-total3=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11)          ##Row bind all of the fingerprint files
+total3=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12)          ##Row bind all of the fingerprint files
 fact3 = total3[match(unique(total3$timestamp), total3$timestamp),]    
 in1.F <- fact3
 
@@ -172,7 +175,8 @@ in1.F <- fact3
 ## create vector of dates when data was collected
 ## add additional collection dates to this vector as files are added to analysis
 dates=c("171018", "171031", "171110", "180223", "180304",
-        "180328", "180405", "180423", "180508", "180528", "180611")
+        "180328", "180405", "180423", "180508", "180528", "180611",
+        "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -182,14 +186,14 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","out.F")                                              ##Name all columns
   assign(paste0("List",i),use)                                                      ##Assign names for each list
 }
-total4=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11)          ##Row bind all of the fingerprint files
+total4=rbind(List1,List2,List3,List4,List5,List6,List7,List8,List9,List10,List11,List12)          ##Row bind all of the fingerprint files
 fact4 = total4[match(unique(total4$timestamp), total4$timestamp),]    
 out.F <- fact4
 
 ## Binding Dry Pond Outlet HOBO files
 ## create vector of dates when data was collected
 ## add additional collection dates to this vector as files are added to analysis
-dates=c("180528", "180611")
+dates=c("180528", "180611", "180627")
 for (i in 1:length(dates)){
   # i=1
   date=dates[i]
@@ -199,7 +203,7 @@ for (i in 1:length(dates)){
   colnames(use)=c("timestamp","dryout.F","dryout.ft")                               ##Name all columns
   assign(paste0("List",i),use)                                                      ##Assign names for each list
 }
-total5=rbind(List1,List2)          ##Row bind all of the fingerprint files
+total5=rbind(List1,List2,List3)          ##Row bind all of the fingerprint files
 fact5 = total5[match(unique(total5$timestamp), total5$timestamp),]    
 dryout <- fact5
 
