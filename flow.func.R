@@ -161,13 +161,20 @@ rain6.norm <- rain6 %>%
   mutate(rain.in.norm = rain.in * (7.32/5.44))
 #View(rain6.norm)
 
-###### Insert code to used normalized rainfall
+## Insert additional rainfall normalized
 
+## Join normalized rainfall to original dataset
+# insert additional normalized rainfall datasets below
+rain.correct <- rbind(rain1.norm, rain2.norm, rain3.norm, rain4.norm, rain5.norm, rain6.norm) %>%
+  select("timestamp",
+         "rain.in.norm")
+DS <- left_join(DS, rain.correct, by = "timestamp")
+#View(DS)
 
 ## Select columns for hyrology analysis
 DS.hydro <- DS %>%
   select("timestamp",
-         "rain.in",
+         "rain.in.norm",
          "in1.ft",
          "dryout.ft",
          "in2.ft",
