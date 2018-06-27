@@ -83,7 +83,8 @@ rain.norm <- DS %>%
   select("timestamp",
          "rain.in")
 #View(rain.norm)
-# filter rows matching date periods for manual rain gauge measurements
+# Filter rows matching date periods for manual rain gauge measurements
+#2017/07/19->2017/09/15
 rain1 <- rain.norm %>%
   subset(timestamp >= "2017-07-19 08:00" & timestamp <= "2017-09-15 07:58")
 #View(rain1)
@@ -95,17 +96,73 @@ rain1.norm <- rain1 %>%
   mutate(rain.in.norm = rain.in * (3.71/6.51))
 #View(rain1.norm)
 
-# filter rows matching date periods for manual rain gauge measurements
-rain1 <- rain.norm %>%
-  subset(timestamp >= "2017-07-19 08:00" & timestamp <= "2017-09-15 07:58")
-#View(rain1)
+# Filter rows matching date periods for manual rain gauge measurements
+#2017/09/15->2017/11/10
+rain2 <- rain.norm %>%
+  subset(timestamp >= "2017-09-15 08:00" & timestamp <= "2017-11-10 07:58")
+#View(rain2)
 # sum rain fall to determine normalization factor
-#sum(rain1$rain.in)
-# returns: 6.51
-# normalize by 3.71/6.51
-rain1.norm <- rain1 %>%
-  mutate(rain.in.norm = rain.in * (3.71/6.51))
-#View(rain1.norm)
+# sum(rain2$rain.in, na.rm = TRUE)
+# returns: 2.52
+# normalize by 4.59/2.52
+rain2.norm <- rain2 %>%
+  mutate(rain.in.norm = rain.in * (4.59/2.52))
+#View(rain2.norm)
+
+# Filter rows matching date periods for manual rain gauge measurements
+#2017/11/10->2017/12/06
+rain3 <- rain.norm %>%
+  subset(timestamp >= "2017-11-10 08:00" & timestamp <= "2017-12-06 07:58")
+#View(rain3)
+# sum rain fall to determine normalization factor
+# sum(rain3$rain.in, na.rm = TRUE)
+# returns: 0.97
+# normalize by 1.07/0.97
+rain3.norm <- rain3 %>%
+  mutate(rain.in.norm = rain.in * (1.07/0.97))
+#View(rain3.norm)
+
+# Filter rows matching date periods for manual rain gauge measurements
+#2018/01/31->2018/02/27
+rain4 <- rain.norm %>%
+  subset(timestamp >= "2018-01-31 08:00" & timestamp <= "2018-02-27 07:58")
+#View(rain4)
+# sum rain fall to determine normalization factor
+# sum(rain4$rain.in, na.rm = TRUE)
+# returns: 1.69
+# normalize by 1.59/1.69
+rain4.norm <- rain4 %>%
+  mutate(rain.in.norm = rain.in * (1.59/1.69))
+#View(rain4.norm)
+
+# Filter rows matching date periods for manual rain gauge measurements
+#2018/02/27->2018/04/23
+rain5 <- rain.norm %>%
+  subset(timestamp >= "2018-02-27 08:00" & timestamp <= "2018-04-23 07:58")
+#View(rain5)
+# sum rain fall to determine normalization factor
+# sum(rain5$rain.in, na.rm = TRUE)
+# returns: 8.89
+# normalize by 9.4/8.89
+rain5.norm <- rain5 %>%
+  mutate(rain.in.norm = rain.in * (9.4/8.89))
+#View(rain5.norm)
+
+# Filter rows matching date periods for manual rain gauge measurements
+#2018/04/23->2018/06/25
+rain6 <- rain.norm %>%
+  subset(timestamp >= "2018-04-23 08:00" & timestamp <= "2018-06-25 07:58")
+#View(rain6)
+# sum rain fall to determine normalization factor
+# sum(rain6$rain.in, na.rm = TRUE)
+# returns: 5.44
+# normalize by 7.32/5.44
+rain6.norm <- rain6 %>%
+  mutate(rain.in.norm = rain.in * (7.32/5.44))
+#View(rain6.norm)
+
+###### Insert code to used normalized rainfall
+
 
 ## Select columns for hyrology analysis
 DS.hydro <- DS %>%
