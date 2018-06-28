@@ -33,7 +33,7 @@ require("mapdata")      # Supplement to maps package
 ## Create Time Series
 ## Use in matching observations
 ## 'by' 2-min interval
-ts <- seq(ymd_hm("2017-07-12 0:00"), ymd_hm("2018-06-20 0:00"), by = 120) 
+ts <- seq(ymd_hm("2017-07-12 0:00"), ymd_hm("2018-07-20 0:00"), by = 120) 
 ## Make data frame
 ts.df <- data.frame(timestamp=ts)
 ##View(ts.df)
@@ -256,6 +256,6 @@ DS <- DS[,c(1,2,9,3,4,8,5,6,11,12,7,13,10,14,15)]
 
 ## Select observations after day of first observation
 DS <- subset.data.frame(DS, timestamp > "2017-07-12 12:00:00")
-
+#View(DS)
 ## Write .csv file for use in analysis
 write.csv(DS, "./Working/dataset.csv")
