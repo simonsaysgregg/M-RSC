@@ -40,7 +40,7 @@ ts.df <- data.frame(timestamp=ts)
 
 ## Begin joining datasets
 ## Read file MRSC_rain
-rain <- read.csv("./FlowLink/180528/MRSC_rain.csv", skip = 7)
+rain <- read.csv("./FlowLink/180627/MRSC_rain.csv", skip = 7)
 ## Rename columns
 colnames(rain) <- c("timestamp", "rain.in")
 ## Reformat dates
@@ -51,7 +51,7 @@ DS <- left_join(ts.df, rain, by = "timestamp")
 ##View(DS)
 
 ## Read file MRSC_In1_level
-in1.ft <- read.csv("./FlowLink/180528/MRSC_IN1_level.csv", skip = 7)
+in1.ft <- read.csv("./FlowLink/180627/MRSC_IN1_level.csv", skip = 7)
 ## Rename columns
 colnames(in1.ft) <- c("timestamp", "in1.ft")
 ## Reformat dates
@@ -62,7 +62,7 @@ DS <- left_join(DS, in1.ft, by = "timestamp")
 ##View(DS)
 
 ## Read file MRSC_In2_level
-in2.ft <- read.csv("./FlowLink/180528/MRSC_IN2_level.csv", skip = 7)
+in2.ft <- read.csv("./FlowLink/180627/MRSC_IN2_level.csv", skip = 7)
 ## Rename columns
 colnames(in2.ft) <- c("timestamp", "in2.ft")
 ## Reformat dates
@@ -73,7 +73,7 @@ DS <- left_join(DS, in2.ft, by = "timestamp")
 ##View(DS)
 
 ## Read file MRSC_out_level
-out.ft <- read.csv("./FlowLink/180528/MRSC_OUT_level.csv", skip = 7)
+out.ft <- read.csv("./FlowLink/180627/MRSC_OUT_level.csv", skip = 7)
 ## Rename columns
 colnames(out.ft) <- c("timestamp", "out.ft")
 ## Reformat dates
@@ -84,7 +84,7 @@ DS <- left_join(DS, out.ft, by = "timestamp")
 ##View(DS)
 
 ## Read file MRSC_out_velocity
-out.velo <- read.csv("./FlowLink/180528/MRSC_OUT_velocity.csv", skip = 7)
+out.velo <- read.csv("./FlowLink/180627/MRSC_OUT_velocity.csv", skip = 7)
 ## Rename columns
 colnames(out.velo) <- c("timestamp", "out.velo")
 ## Reformat dates
