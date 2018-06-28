@@ -70,7 +70,7 @@ flow.dryout <- function(dryout.m, in1.m, Cd = 0.51, inv.diff = 0.66142, area.orf
   # two orifi
   # in1.m 2" (0.1667m) offset above orfice center:
   # rolling average to scrub noise of movement
-  ifelse(dryout.m < inv.diff, (((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2), ((((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m))) * 2) + (C * (L - (0.2 * (dryout.m - inv.diff))) * ((dryout.m - inv.diff)^1.5)))))     
+  ifelse(dryout.m < inv.diff, (((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2), ((((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2) + (C * (L - (0.2 * (dryout.m - inv.diff))) * ((dryout.m - inv.diff)^1.5))))     
 }
   
   ## End user defined functions##############################################
@@ -237,11 +237,11 @@ DS.flow.exp <- (DS.hydro.metric) %>%
          out.flow.roll.ASABE) 
 #View(DS.flow.exp)  
 ## Create a INflow dataset
-DS.inflow <- (DS.hydro.metric) %>%
-  subset(timestamp > "2018/05/25" & timestamp < "2018/06/27") %>%
+DS.inflow <- (DS.hydro) %>%
+  subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
   select(timestamp, 
-         #in1.m_flow,
-         dryout.m_flow) 
+         in1.ft,
+         dryout.ft) 
 #View(DS.inflow)  
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
