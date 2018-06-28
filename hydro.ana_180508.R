@@ -119,8 +119,9 @@ Rainsum <- RainEvents %>%
   map_df(function(df) {summarise(df, Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall),
                                  max.intensity5 = max(int.5min),
-                                 in1.vol = sum(in1.m_flow) * (Duration * 3600),
-                                 in2.vol = sum(in2.m_flow) * (Duration * 3600),
-                                 out.vol = sum(out.flow.roll.ASABE) * (Duration * 3600),
+                                 in1.vol = sum(in1.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 dryout.vol = sum(dryout.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 in2.vol = sum(in2.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 out.vol = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600),
                                  in.sum = (in1.vol + in2.vol))})
 # View(Rainsum)
