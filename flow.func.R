@@ -61,16 +61,18 @@ flow.out <- function(V,A){
 # General function for compound outlet structure
 # inv.diff == difference btw multi flow control structures 
 # current case: orfice + wier
-flow.dryout <- function(dryout.m, in1.m, Cd = 0.51, inv.diff = 0.66142, area.orf.m = 0.0081, grav = 9.8, C = 1.84, L = 4.237) { 
+flow.dryout <- function(dryout.m, in1.m, Cd = 0.41, inv.diff = 0.635, area.orf.m = 0.0081, grav = 9.8, C = 1.84, L = 4.237) { 
   ## modify following equaiton for drypond outlet
-  # Hobo 2.16667' (0.66142m) below west broad cret weir
-  # Hobo 1.537' (0.4683m) below orfice center
-  # weir crest 0.633' (0.1929m) above orfice center
+  # Hobo 2.0833' (0.635m) below west broad cret weir
+  # Hobo 1.45' (0.442m) below orfice center
+  # weir crest 0.63' (0.1920m) above orfice center
   # weir crest length 13.9' (4.237m)
   # two orifi
-  # in1.m 2" (0.1667m) offset above orfice center:
+  # in1.m 0.13' (0.0396m) above orfice center
   # rolling average to scrub noise of movement
-  ifelse(dryout.m < inv.diff, (((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2), ((((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2) + (C * (L - (0.2 * (dryout.m - inv.diff))) * ((dryout.m - inv.diff)^1.5))))     
+  dryout.m <- rollapply(dryout.m, 5, mean, fill = NA)
+  
+  ifelse(dryout.m < inv.diff, (((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.442) - (in1.m + 0.0396)))) * 2), ((((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.442) - (in1.m + 0.0396)))) * 2) + (C * (L - (0.2 * (dryout.m - inv.diff))) * ((dryout.m - inv.diff)^1.5))))     
 }
   
   ## End user defined functions##############################################
@@ -237,11 +239,11 @@ DS.flow.exp <- (DS.hydro.metric) %>%
          out.flow.roll.ASABE) 
 #View(DS.flow.exp)  
 ## Create a INflow dataset
-DS.inflow <- (DS.hydro) %>%
+DS.inflow <- (DS.hydro.metric) %>%
   subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
   select(timestamp, 
-         in1.ft,
-         dryout.ft) 
+         #in1.m_flow,
+         dryout.m_flow) 
 #View(DS.inflow)  
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
