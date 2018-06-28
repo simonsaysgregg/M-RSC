@@ -61,15 +61,16 @@ flow.out <- function(V,A){
 # General function for compound outlet structure
 # inv.diff == difference btw multi flow control structures 
 # current case: orfice + wier
-flow.dryout <- function(dryout.m, Cd = 0.6, inv.diff = 0.66142, area.orf.m = 0.0081, grav = 9.8, Cw = 3.0, L = 4.237) { 
+flow.dryout <- function(dryout.m, in1.m, Cd = 0.51, inv.diff = 0.66142, area.orf.m = 0.0081, grav = 9.8, C = 1.84, L = 4.237) { 
   ## modify following equaiton for drypond outlet
   # Hobo 2.16667' (0.66142m) below west broad cret weir
-  # Hobo 1.537' (0.4685m) below orfice center
+  # Hobo 1.537' (0.4683m) below orfice center
   # weir crest 0.633' (0.1929m) above orfice center
   # weir crest length 13.9' (4.237m)
   # two orifi
+  # in1.m 2" (0.1667m) offset above orfice center:
   # rolling average to scrub noise of movement
-  ifelse(dryout.m < inv.diff, ((Cd * area.orf.m) * sqrt(2 * grav * (dryout.m - 0.4685))) * 2, ((((Cd * area.orf.m) * sqrt(2 * grav * (0.1929))) * 2) + (Cw * L * ((dryout.m - inv.diff)^1.5))))     
+  ifelse(dryout.m < inv.diff, (((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m)))) * 2), ((((Cd * area.orf.m) * sqrt(2 * grav * ((dryout.m - 0.4683) - (in1.m))) * 2) + (C * (L - (0.2 * (dryout.m - inv.diff))) * ((dryout.m - inv.diff)^1.5)))))     
 }
   
   ## End user defined functions##############################################
@@ -79,7 +80,7 @@ DS <- read.csv("./Working/dataset.csv")
 # View(DS)
 # Format date time
 DS$timestamp <- ymd_hms(DS$timestamp)
-  
+#View(DS)
 
 ## Rainfall normalization 
 # select columns
@@ -186,13 +187,13 @@ DS.hydro <- DS %>%
          "out.ft",
          "out.velo",
          "well.ft")
-
+  
 ## Convert to metric units 
 DS.hydro.metric <- DS.hydro %>%
   transmute(timestamp = timestamp,
             rainfall = rain.in.norm * 25.4,
             in1.m = in1.ft * 0.3048,
-            dryout.m = rollapply(dryout.ft, 5, mean, fill = NA) * 0.3048,
+            dryout.m = dryout.ft * 0.3048,
             in2.m = in2.ft * 0.3048,
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
@@ -204,7 +205,7 @@ DS.hydro.metric <- DS.hydro %>%
 ## Mutate to add flow calculation using function
 DS.hydro.metric <- DS.hydro.metric %>%
   mutate(in1.m_flow = flow.in1(in1.m),
-         dryout.m_flow = flow.dryout(dryout.m),
+         dryout.m_flow = flow.dryout(dryout.m, in1.m),
          in2.m_flow = flow.in2(in2.m),
          in2.hobo.m_flow = flow.in2(in2.hobo.m),
          area.ASABE = area.out.ASABE(out.m),
@@ -237,10 +238,10 @@ DS.flow.exp <- (DS.hydro.metric) %>%
 #View(DS.flow.exp)  
 ## Create a INflow dataset
 DS.inflow <- (DS.hydro.metric) %>%
+  subset(timestamp > "2018/05/25" & timestamp < "2018/06/27") %>%
   select(timestamp, 
-         in1.m_flow, 
-         in2.m_flow, 
-         in2.hobo.m_flow) 
+         #in1.m_flow,
+         dryout.m_flow) 
 #View(DS.inflow)  
 ## Melt Dataset
 DS.flow.melt <- (DS.flow) %>%
