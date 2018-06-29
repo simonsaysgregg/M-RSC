@@ -205,11 +205,12 @@ DS.hydro.metric <- DS.hydro %>%
 # View(DS.hydro.metric)
 
 ## Mutate to add flow calculation using function
+# flow.in1 and flow.in2 results in m3/hr
 DS.hydro.metric <- DS.hydro.metric %>%
-  mutate(in1.m_flow = flow.in1(in1.m),
+  mutate(in1.m_flow = (flow.in1(in1.m) / 3600),
          dryout.m_flow = flow.dryout(dryout.m, in1.m),
-         in2.m_flow = flow.in2(in2.m),
-         in2.hobo.m_flow = flow.in2(in2.hobo.m),
+         in2.m_flow = (flow.in2(in2.m) / 3600),
+         in2.hobo.m_flow = (flow.in2(in2.hobo.m) / 3600),
          area.ASABE = area.out.ASABE(out.m),
          out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE))
 #View(DS.hydro.metric)
@@ -242,7 +243,7 @@ DS.flow.exp <- (DS.hydro.metric) %>%
 DS.inflow <- (DS.hydro.metric) %>%
   subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
   select(timestamp, 
-         #in1.m_flow,
+         in1.m_flow,
          dryout.m_flow) 
 #View(DS.inflow)  
 ## Melt Dataset
@@ -274,6 +275,11 @@ ggplot(DS.flow.melt.exp, aes(x = timestamp))+
 ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 ############
+
+## linear regression of inflow methods
+attempt1 <- lm(dryout.m_flow ~ in1.m_flow, data = DS.flow)
+summary(attempt1)
+
 
 ## Decide to use DS.flow for remainder of calculations
 ## Write .csv file for use in analysis
