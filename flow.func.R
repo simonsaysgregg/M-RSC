@@ -276,13 +276,7 @@ ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 ############
 
-## linear regression of inflow methods
-quad <- lm(dryout.m_flow ~ in1.m_flow + I(in1.m_flow^2), data = DS.flow)
-summary(quad)
-#plot
-ggplot(DS.inflow.exp)+
-  geom_point(aes(x = in1.m_flow, y = dryout.m_flow))+
-  geom_line(aes(intercept = dryout.m_flow, slope = in1.m_flow + I(in1.m_flow^2)))
+
 
 ## Decide to use DS.flow for remainder of calculations
 ## Write .csv file for use in analysis
