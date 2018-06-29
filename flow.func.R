@@ -233,12 +233,12 @@ DS.outflow <- (DS.hydro.metric) %>%
          out.flow.roll.ASABE) 
 #View(DS.flow)  
 ## Create a flow dataset: exp
-DS.flow.exp <- (DS.hydro.metric) %>%
+DS.inflow.exp <- (DS.hydro.metric) %>%
+  subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
   select(timestamp, 
          in1.m_flow, 
-         in2.m_flow, 
-         out.flow.roll.ASABE) 
-#View(DS.flow.exp)  
+         dryout.m_flow) 
+#View(DS.inflow.exp)  
 ## Create a INflow dataset
 DS.inflow <- (DS.hydro.metric) %>%
   subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
@@ -277,9 +277,12 @@ ggplot(DS.inflow, aes(x = timestamp))+
 ############
 
 ## linear regression of inflow methods
-attempt1 <- lm(dryout.m_flow ~ in1.m_flow, data = DS.flow)
-summary(attempt1)
-
+quad <- lm(dryout.m_flow ~ in1.m_flow + I(in1.m_flow^2), data = DS.flow)
+summary(quad)
+#plot
+ggplot(DS.inflow.exp)+
+  geom_point(aes(x = in1.m_flow, y = dryout.m_flow))+
+  geom_line(aes(intercept = dryout.m_flow, slope = in1.m_flow + I(in1.m_flow^2)))
 
 ## Decide to use DS.flow for remainder of calculations
 ## Write .csv file for use in analysis
