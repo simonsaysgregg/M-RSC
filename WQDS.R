@@ -56,7 +56,7 @@ colnames(DS.wq) <- c("samp.date",
 ##Format date time
 DS.wq$samp.date <- mdy(DS.wq$samp.date)
 
-## Summarize storm and base flow concentrations
+## Summarize storm flow concentrations per site
 storm.wq <- (DS.wq) %>%
   select(samp.date, 
          site, 
@@ -70,6 +70,24 @@ storm.wq <- (DS.wq) %>%
   subset(event == "storm")
 #View(storm.wq)
 storm.sum.wq <- (storm.wq) %>%
-  group_by(site) %>%
+  group_by(as.character(site)) %>%
   summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
 #View(storm.sum.wq)
+
+## Summarize base flow concentrations per site
+base.wq <- (DS.wq) %>%
+  select(samp.date, 
+         site, 
+         event, 
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS) %>%
+  subset(event == "base")
+#View(storm.wq)
+base.sum.wq <- (base.wq) %>%
+  group_by(as.character(site)) %>%
+  summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
+#View(base.sum.wq)
