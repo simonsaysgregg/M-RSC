@@ -29,3 +29,47 @@ require("stringi")
 require("ggmap")        # Plotting of maps same as you would with ggplot2
 require("maptools")     # Read, write, and handle Shapefiles in R
 require("mapdata")      # Supplement to maps package
+
+## Read file from ./Working folder
+## units TSS mg/L, all others ug/L
+DS.wq <- read.csv("./Working/DS.wq_results_180425.csv")
+# View(DS.wq)
+
+## Rename columns
+colnames(DS.wq) <- c("samp.date", 
+                     "site",
+                     "event",
+                     "TKN",
+                     "TKN.qc",
+                     "NOx",
+                     "NOx.qc",
+                     "NH3N",
+                     "NH3N.qc",
+                     "TP",
+                     "TP.qc",
+                     "OP",
+                     "OP.qc",
+                     "TSS",
+                     "TSS.qc")
+# View(DS.wq)
+
+##Format date time
+DS.wq$samp.date <- mdy(DS.wq$samp.date)
+
+## Summarize storm and base flow concentrations
+storm.wq <- (DS.wq) %>%
+  select(samp.date, 
+         site, 
+         event, 
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS) %>%
+  subset(event == "storm")
+#View(storm.wq)
+storm.sum.wq <- (storm.wq) %>%
+  group_by(site) %>%
+  summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
+#View(storm.sum.wq)
