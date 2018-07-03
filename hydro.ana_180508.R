@@ -188,3 +188,11 @@ Rainsum <- RainEvents %>%
                                  out.vol = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600),
                                  in.sum = (in1.vol + in2.vol + runoff.est.runon))})
 # View(Rainsum)
+
+## Summarise rainfall info
+Rainfall_event.summary <- (Rainsum[-1, ]) %>%
+  select(Duration,
+         Accumulation,
+         max.intensity5) %>%
+  summarise_all(funs(median, min, max), na.rm = TRUE) 
+#View(Rainfall_event.summary)
