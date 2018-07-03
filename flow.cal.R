@@ -50,7 +50,13 @@ DS.flow.both <- (DS.flow)%>%
 # Begin with linear model analysis
 ## linear regression of inflow methods
 linear <- lm((dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
+#linear <- lm(log(dryout.m_flow+0.01) ~ log(in1.m_flow+0.01), data = DS.flow.both)
 summary(linear)
+
+# ggplot(DS.flow.both)+
+#   geom_point(aes(timestamp,dryout.m_flow))+
+#   geom_point(aes(timestamp,in1.m_flow),color='red',alpha=0.5)
+
 # Returns:
 # Call:
 #   lm(formula = (dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
