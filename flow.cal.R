@@ -38,6 +38,7 @@ DS.flow$timestamp <- ymd_hms(DS.flow$timestamp)
 
 ## Creation of dataset for analysis & correction 
 # from after dryout installation
+# can omit this step using entire dataset calling na.omit
 DS.flow.both <- (DS.flow)%>%
   select(timestamp,
          in1.m_flow,
@@ -46,38 +47,168 @@ DS.flow.both <- (DS.flow)%>%
 #View(DS.flow.both)
 
 ## Primary inlet diagnosis and correction
+# Begin with linear model analysis
 ## linear regression of inflow methods
-linear <- lm(log(dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
+linear <- lm((dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
 summary(linear)
+# Returns:
+# Call:
+#   lm(formula = (dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
+# 
+# Residuals:
+#   Min        1Q    Median        3Q       Max 
+# -0.129043 -0.001340 -0.000467  0.000153  0.105050 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) 6.251e-03  4.862e-05   128.6   <2e-16 ***
+#   in1.m_flow  1.838e+00  5.938e-03   309.6   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.007289 on 22903 degrees of freedom
+# (617 observations deleted due to missingness)
+# Multiple R-squared:  0.8071,	Adjusted R-squared:  0.8071 
+# F-statistic: 9.582e+04 on 1 and 22903 DF,  p-value: < 2.2e-16
+
 # Check model mean residuals -- should be near zero
 mean(linear$residuals)
-# resutns: 1.354635e-16
-
+# Resutns: -1.289417e-19
 # Equal variance check
 par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
 plot(linear)
-
 # Autocorrelation check
 acf(linear$residuals)
-
 # Rectify autocorrelation
 DS.flow1 <- na.omit(DS.flow.both)
 resid_linear <- linear$residuals
 DS.flow1[, "resid_linear"] <- resid_linear
 DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
-linear2 <- lm(log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
+linear2 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
 
-# Review model
+## Review model
 summary(linear2)
+# Returns:
+# Call:
+#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
+# 
+# Residuals:
+#   Min        1Q    Median        3Q       Max 
+# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
+#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
+#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.003931 on 22901 degrees of freedom
+# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
+# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
 mean(linear2$residuals)
-# returns: -3.182592e-17
+# returns: -2.598854e-19
 acf(linear2$residuals)
-gvlma(quad)
-
+# Below checks all assumptions of linear regression
+#gvlma(quad)
 # Equal variance check
 par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
 plot(linear2)
+
+## Remove outliers denoted from previous model
+linear3 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
+summary(linear3)
+# Returns:
+# Call:
+#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
+#                                                                        230884, 240069, 240088, 251228, 251458), ])
+# 
+# Residuals:
+#   Min        1Q    Median        3Q       Max 
+# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
+#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
+#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.003931 on 22901 degrees of freedom
+# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
+# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
+
+# Check model mean residuals -- should be near zero
+mean(linear3$residuals)
+# Resutns:  -2.598854e-19
+# Equal variance check
+par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
+plot(linear3)
+
+## Remove outliers denoted from previous model
+linear4 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
+summary(linear4)
+# Returns:
+# Call:
+#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
+#                                                                        230884, 240069, 240088, 251228, 251458), ])
+# 
+# Residuals:
+#   Min        1Q    Median        3Q       Max 
+# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
+#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
+#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.003931 on 22901 degrees of freedom
+# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
+# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
+
+# Check model mean residuals -- should be near zero
+mean(linear4$residuals)
+# Resutns:   -2.598854e-19
+# Equal variance check
+par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
+plot(linear4)
+
+## log transform previous model
+linear5 <- lm(log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
+summary(linear5)
+# Returns:
+# Call:
+#   lm(formula = log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
+#                                                                           230884, 240069, 240088, 251228, 251458), ])
+# 
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -3.2351 -0.0418  0.0524  0.1165  4.7036 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) -5.143636   0.002177 -2363.1   <2e-16 ***
+#   in1.m_flow  40.305574   0.266414   151.3   <2e-16 ***
+#   lag1        36.786045   0.296475   124.1   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.3263 on 22901 degrees of freedom
+# Multiple R-squared:  0.6415,	Adjusted R-squared:  0.6414 
+# F-statistic: 2.049e+04 on 2 and 22901 DF,  p-value: < 2.2e-16
+
+# Check model mean residuals -- should be near zero
+mean(linear5$residuals)
+# Resutns:  -2.811963e-16
+# Equal variance check
+par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
+plot(linear5)
 
 ## Polynomial regression of inflow methods
 quad <- lm(log(dryout.m_flow) ~ in1.m_flow + I(in1.m_flow^2), data = DS.flow)
