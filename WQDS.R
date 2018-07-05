@@ -86,8 +86,47 @@ base.wq <- (DS.wq) %>%
          OP, 
          TSS) %>%
   subset(event == "base")
-#View(storm.wq)
+#View(base.wq)
 base.sum.wq <- (base.wq) %>%
   group_by(as.character(site)) %>%
   summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
 #View(base.sum.wq)
+
+## Box plots of by site, analyte, and parameter
+# Storm data set prep
+storm.wq.melt <- (storm.wq) %>%
+  select(site,
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS) %>%
+  melt(id = "site")
+#View(storm.wq.melt)
+
+# baseflow data set prep
+base.wq.melt <- (base.wq) %>%
+  select(site,
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS) %>%
+  melt(id = "site")
+#View(base.wq.melt)
+
+# Box plots
+ggplot(data = storm.wq.melt, aes(x = variable))+
+  ggtitle("Storm Flow")+
+  geom_boxplot(aes(y = value, color = site))+
+  labs(y = "Concentration (ug/L) or (mg/L)", x = "Pollutant")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+# Box plots
+ggplot(data = base.wq.melt, aes(x = variable))+
+  ggtitle("Base Flow")+
+  geom_boxplot(aes(y = value, color = site))+
+  labs(y = "Concentration (ug/L) or (mg/L)", x = "Pollutant")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
