@@ -154,20 +154,6 @@ RSC.hydro.m$storm.index <- (RSC.hydro.m$storm.index) %>%
                             replace_na(0)
 # View(RSC.hydro.m)
 
-## Create a flow dataset for viewing
-DS.flow.tot <- (DS.hydro.metric) %>%
-  select(timestamp, 
-         in1.m_flow,
-         in2.hobo.m_flow,
-         out.flow.roll.ASABE)
-## Melt inflow Dataset 
-DS.flow.tot <- (DS.flow.tot) %>%
-  melt(id = "timestamp")
-#View(DS.inflow)
-## Plot inFlow
-ggplot(DS.flow.tot, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
-
 ## Split into list of events
 RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index) 
 # Returns a list of events 
@@ -184,11 +170,17 @@ Rainsum <- RainEvents %>%
                                  dryout.vol = sum(dryout.m_flow, na.rm = TRUE) * (Duration * 3600),
                                  runoff.est.in2 = runoff.in2(Accumulation, CN = 84),
                                  in2.vol = sum(in2.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 in2.hobo.vol = sum(in2.hobo.m_flow, na.rm = TRUE) * (Duration * 3600),
                                  runoff.est.runon = runoff.runon(Accumulation, CN = 87),
-                                 out.vol = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600),
-                                 in.sum = (in1.vol + in2.vol + runoff.est.runon))})
+                                 out.vol = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600))})
 # View(Rainsum)
 
+## Mutate to provide additional hydrology analsis
+Rainsum_event_analysis <- (Rainsum) %>%
+  subset(Accumulation >= 5.0) %>%
+  mutate(in.sum = in1.vol + in2.hobo.vol + runoff.est.runon,
+         flow.vol.perc_diff = ((as.numeric(in.sum) - as.numeric(out.vol)) / as.numeric(in.sum)) * 100)
+#View(Rainsum_event_analysis)
 ## Summarise rainfall info
 Rainfall_event.summary <- (Rainsum[-1, ]) %>%
   select(Duration,
@@ -196,3 +188,6 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
          max.intensity5) %>%
   summarise_all(funs(median, min, max), na.rm = TRUE) 
 #View(Rainfall_event.summary)
+
+## Write .csv file for exporting data frames
+write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
