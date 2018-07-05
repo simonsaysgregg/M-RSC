@@ -200,7 +200,7 @@ DS.hydro.metric <- DS.hydro %>%
             in2.hobo.m = in2.hobo.ft * 0.3048,
             out.m = out.ft * 0.3048,
             out.velo = out.velo * 0.3048,
-            out.velo.roll = rollapply(out.velo, 10, mean, fill = NA),
+            out.velo.roll = rollapply(out.velo, 5, mean, fill = NA),
             well.m = well.ft * 0.3048)
 # View(DS.hydro.metric)
 
@@ -228,6 +228,20 @@ DS.flow <- (DS.hydro.metric) %>%
 ## Create outlet flow dataset
 # experimental: to determine method of velocity processing: see beyond
 ############ 
+## Create a flow dataset for viewing
+DS.flow.tot <- (DS.hydro.metric) %>%
+  select(timestamp, 
+         in1.m_flow,
+         in2.hobo.m_flow,
+         out.flow.roll.ASABE)
+## Melt inflow Dataset 
+DS.flow.tot <- (DS.flow.tot) %>%
+  melt(id = "timestamp")
+#View(DS.inflow)
+## Plot inFlow
+ggplot(DS.flow.tot, aes(x = timestamp))+
+  geom_line(aes(y = value, colour = variable))
+
 DS.outflow <- (DS.hydro.metric) %>%
   select(timestamp,
          out.flow.roll.ASABE) 
@@ -273,7 +287,13 @@ ggplot(DS.flow.melt.exp, aes(x = timestamp))+
   geom_line(aes(y = value, colour = variable))
 ## Plot inFlow
 ggplot(DS.inflow, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
+  geom_line(aes(y = value, linetype = variable))+
+  scale_linetype_manual(values = c("solid", "longdash"), labels = c("Weir", "Outlet"))+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+
+
 ############
 
 
