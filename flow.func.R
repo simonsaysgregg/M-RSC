@@ -168,11 +168,24 @@ rain6.norm <- rain6 %>%
   mutate(rain.in.norm = rain.in * (7.32/5.44))
 #View(rain6.norm)
 
+# Filter rows matching date periods for manual rain gauge measurements
+#2018/06/25->2018/07/09
+rain7 <- rain.norm %>%
+  subset(timestamp >= "2018-06-25 08:00" & timestamp <= "2018-07-09 06:00")
+#View(rain7)
+# sum rain fall to determine normalization factor
+# sum(rain7$rain.in, na.rm = TRUE)
+# returns: 4.53
+# normalize by 4.86/4.53
+rain7.norm <- rain7 %>%
+  mutate(rain.in.norm = rain.in * (4.86/4.53))
+#View(rain7.norm)
+
 ## Insert additional rainfall normalized
 
 ## Join normalized rainfall to original dataset
 # insert additional normalized rainfall datasets below
-rain.correct <- rbind(rain1.norm, rain2.norm, rain3.norm, rain4.norm, rain5.norm, rain6.norm) %>%
+rain.correct <- rbind(rain1.norm, rain2.norm, rain3.norm, rain4.norm, rain5.norm, rain6.norm, rain7.norm) %>%
   select("timestamp",
          "rain.in.norm")
 DS <- left_join(DS, rain.correct, by = "timestamp")
@@ -212,6 +225,7 @@ DS.hydro.metric <- DS.hydro.metric %>%
          in2.m_flow = (flow.in2(in2.m) / 3600),
          in2.hobo.m_flow = (flow.in2(in2.hobo.m) / 3600),
          area.ASABE = area.out.ASABE(out.m),
+         out.flow = flow.out(out.velo, area.ASABE),
          out.flow.roll.ASABE = flow.out(out.velo.roll, area.ASABE))
 #View(DS.hydro.metric)
 
@@ -222,6 +236,7 @@ DS.flow <- (DS.hydro.metric) %>%
          dryout.m_flow,
          in2.m_flow, 
          in2.hobo.m_flow, 
+         out.flow,
          out.flow.roll.ASABE) 
 #View(DS.flow)  
 
