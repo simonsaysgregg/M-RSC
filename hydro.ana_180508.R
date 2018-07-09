@@ -113,6 +113,7 @@ RSC.hydro.m <- (RSC.hydro.m) %>%
                        dryout.m_flow,
                        in2.m_flow,
                        in2.hobo.m_flow,
+                       out.flow,
                        out.flow.roll.ASABE) 
 # View(RSC.hydro.m)
 
@@ -172,13 +173,15 @@ Rainsum <- RainEvents %>%
                                  in2.vol = sum(in2.m_flow, na.rm = TRUE) * (Duration * 3600),
                                  in2.hobo.vol = sum(in2.hobo.m_flow, na.rm = TRUE) * (Duration * 3600),
                                  runoff.est.runon = runoff.runon(Accumulation, CN = 87),
-                                 out.vol = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600))})
+                                 out.vol = sum(out.flow, na.rm = TRUE) * (Duration * 3600),
+                                 out.vol.roll = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600))})
 # View(Rainsum)
 
 ## Mutate to provide additional hydrology analsis
 Rainsum_event_analysis <- (Rainsum) %>%
   subset(Accumulation >= 5.0) %>%
   mutate(in.sum = in1.vol + in2.hobo.vol + runoff.est.runon,
+         flow.vol.perc_diff.roll = ((as.numeric(in.sum) - as.numeric(out.vol.roll)) / as.numeric(in.sum)) * 100,
          flow.vol.perc_diff = ((as.numeric(in.sum) - as.numeric(out.vol)) / as.numeric(in.sum)) * 100)
 #View(Rainsum_event_analysis)
 ## Summarise rainfall info
