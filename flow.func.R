@@ -244,63 +244,63 @@ DS.flow <- (DS.hydro.metric) %>%
 # experimental: to determine method of velocity processing: see beyond
 ############ 
 ## Create a flow dataset for viewing
-DS.flow.tot <- (DS.hydro.metric) %>%
-  select(timestamp, 
-         in1.m_flow,
-         in2.hobo.m_flow,
-         out.flow.roll.ASABE)
-## Melt inflow Dataset 
-DS.flow.tot <- (DS.flow.tot) %>%
-  melt(id = "timestamp")
+# DS.flow.tot <- (DS.hydro.metric) %>%
+#   select(timestamp, 
+#          in1.m_flow,
+#          in2.hobo.m_flow,
+#          out.flow.roll.ASABE)
+# ## Melt inflow Dataset 
+# DS.flow.tot <- (DS.flow.tot) %>%
+#   melt(id = "timestamp")
+# #View(DS.inflow)
+# ## Plot inFlow
+# ggplot(DS.flow.tot, aes(x = timestamp))+
+#   geom_line(aes(y = value, colour = variable))
+# 
+# DS.outflow <- (DS.hydro.metric) %>%
+#   select(timestamp,
+#          out.flow.roll.ASABE) 
+# #View(DS.flow)  
+# ## Create a flow dataset: exp
+# DS.inflow.exp <- (DS.hydro.metric) %>%
+#   subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
+#   select(timestamp, 
+#          in1.m_flow, 
+#          dryout.m_flow) 
+# #View(DS.inflow.exp)  
+# ## Create a INflow dataset
+# DS.inflow <- (DS.hydro.metric) %>%
+#   subset(timestamp > "2018/05/25" & timestamp < "2018/07/09") %>%
+#   select(timestamp,
+#          in1.m_flow,
+#          dryout.m_flow)
 #View(DS.inflow)
-## Plot inFlow
-ggplot(DS.flow.tot, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
-
-DS.outflow <- (DS.hydro.metric) %>%
-  select(timestamp,
-         out.flow.roll.ASABE) 
-#View(DS.flow)  
-## Create a flow dataset: exp
-DS.inflow.exp <- (DS.hydro.metric) %>%
-  subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
-  select(timestamp, 
-         in1.m_flow, 
-         dryout.m_flow) 
-#View(DS.inflow.exp)  
-## Create a INflow dataset
-DS.inflow <- (DS.hydro.metric) %>%
-  subset(timestamp > "2018/05/25" & timestamp < "2018/06/29") %>%
-  select(timestamp, 
-         in1.m_flow,
-         dryout.m_flow) 
-#View(DS.inflow)  
-## Melt Dataset
-DS.flow.melt <- (DS.flow) %>%
-  melt(id = "timestamp")
-#View(DS.flow.melt)
-## Melt outflow Dataset
-DS.outflow.melt <- (DS.outflow) %>%
-  melt(id = "timestamp")
-#View(DS.outflow.melt)
-## Melt flow Dataset exp
-DS.flow.melt.exp <- (DS.flow.exp) %>%
-  melt(id = "timestamp")
-#View(DS.flow.melt.exp)
-## Melt inflow Dataset 
-DS.inflow <- (DS.inflow) %>%
-  melt(id = "timestamp")
-#View(DS.inflow)
-## Plot Flow
-ggplot(DS.flow.melt, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
-## Plot Flow
-ggplot(DS.outflow.melt, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
-## Plot Flow
-ggplot(DS.flow.melt.exp, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
-## Plot inFlow
+# ## Melt Dataset
+# DS.flow.melt <- (DS.flow) %>%
+#   melt(id = "timestamp")
+# #View(DS.flow.melt)
+# ## Melt outflow Dataset
+# DS.outflow.melt <- (DS.outflow) %>%
+#   melt(id = "timestamp")
+# #View(DS.outflow.melt)
+# ## Melt flow Dataset exp
+# DS.flow.melt.exp <- (DS.flow.exp) %>%
+#   melt(id = "timestamp")
+# #View(DS.flow.melt.exp)
+# # ## Melt inflow Dataset 
+# DS.inflow <- (DS.inflow) %>%
+#   melt(id = "timestamp")
+# # #View(DS.inflow)
+# ## Plot Flow
+# ggplot(DS.flow.melt, aes(x = timestamp))+
+#   geom_line(aes(y = value, colour = variable))
+# ## Plot Flow
+# ggplot(DS.outflow.melt, aes(x = timestamp))+
+#   geom_line(aes(y = value, colour = variable))
+# ## Plot Flow
+# ggplot(DS.flow.melt.exp, aes(x = timestamp))+
+#   geom_line(aes(y = value, colour = variable))
+# ## Plot inFlow
 ggplot(DS.inflow, aes(x = timestamp))+
   geom_line(aes(y = value, linetype = variable))+
   scale_linetype_manual(values = c("solid", "longdash"), labels = c("Weir", "Outlet"))+
