@@ -32,32 +32,71 @@ require("mapdata")      # Supplement to maps package
 ## Read file from ./Working folder
 DS.flow <- read.csv("./Working/flow.dataset.csv")
 # View(DS.flow)
+## Read file from ./Working folder
+DS.events <- read.csv("./Working/Rainsum_event_analysis.csv")
+# View(DS.events)
 # Format date time
 DS.flow$timestamp <- ymd_hms(DS.flow$timestamp)
 #View(DS.flow)
+# Format date time
+DS.events$start <- ymd_hms(DS.events$start)
+#View(DS.events)
 
-## Creation of dataset for analysis & correction 
-# from after dryout installation
-# can omit this step using entire dataset calling na.omit
-DS.flow.both <- (DS.flow)%>%
+
+## Subsets events for use in creation of correction
+# Event summary from hydro.ana_
+corr.events <- (DS.events) %>%
+  subset(start >= as.POSIXct("2018-05-25") & start <= as.POSIXct("2018-07-06"))
+#View(corr.events)
+
+## Create a INflow dataset
+DS.inflow <- (DS.flow) %>%
+  subset(timestamp >= "2018/05/25" & timestamp <= "2018/07/06 11:40") %>%
   select(timestamp,
          in1.m_flow,
-         dryout.m_flow)%>%
-  subset(timestamp >= "2018-05-25 15:12:00" & timestamp <= "2018-06-27 07:14:00")
-#View(DS.flow.both)
+         dryout.m_flow)
+## Melt inflow Dataset 
+DS.inflow.m <- (DS.inflow) %>%
+  melt(id = "timestamp")
+#View(DS.inflow.m)
+# Plot events for calibration
+ggplot(DS.inflow.m, aes(x = timestamp))+
+  geom_line(aes(y = value, linetype = variable))+
+  scale_linetype_manual(values = c("solid", "longdash"), labels = c("Weir", "Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+## Creation of dataset for analysis & correction 
+# DS.inflow for correction
+
+# Log transform for normailty correction
+DS.inflow <- DS.flow %>%
+  mutate(trans.in1 = log(in1.m_flow),
+         trans.dryout = log(dryout.m_flow),
+         roll.tran.in = rollapply(trans.in1),
+         roll.tram.dry = rollapply(trans.dryout))
+DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
+DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
+DS.inflow$trans.in1[which(is.nan(DS.inflow$trans.in1))] = NA
+DS.inflow$trans.in1[which(DS.inflow$trans.in1==Inf)] = NA
+#View(DS.inflow)
+
+## Autocorrelation Correction
+
+
 
 ## Primary inlet diagnosis and correction
 # Begin with linear model analysis
 ## linear regression of inflow methods
-linear <- lm((dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
+linear <- lm((trans.dryout) ~ (trans.in1), data = DS.inflow)
 #linear <- lm(log(dryout.m_flow+0.01) ~ log(in1.m_flow+0.01), data = DS.flow.both)
 summary(linear)
 
-# ggplot(DS.flow.both)+
+# ggplot(DS.flow)+
 #   geom_point(aes(timestamp,dryout.m_flow))+
 #   geom_point(aes(timestamp,in1.m_flow),color='red',alpha=0.5)
 
-# Returns:
 # Call:
 #   lm(formula = (dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
 # 
@@ -77,6 +116,7 @@ summary(linear)
 # Multiple R-squared:  0.8071,	Adjusted R-squared:  0.8071 
 # F-statistic: 9.582e+04 on 1 and 22903 DF,  p-value: < 2.2e-16
 
+
 # Check model mean residuals -- should be near zero
 mean(linear$residuals)
 # Resutns: -1.289417e-19
@@ -86,12 +126,16 @@ plot(linear)
 # Autocorrelation check
 acf(linear$residuals)
 # Rectify autocorrelation
-DS.flow1 <- na.omit(DS.flow.both)
+DS.flow1 <- na.omit(DS.inflow)
 resid_linear <- linear$residuals
 DS.flow1[, "resid_linear"] <- resid_linear
 DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
 linear2 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
+
+
+
+
 
 ## Review model
 summary(linear2)
