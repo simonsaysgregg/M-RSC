@@ -51,10 +51,15 @@ corr.events <- (DS.events) %>%
 
 ## Create a INflow dataset
 DS.inflow <- (DS.flow) %>%
-  subset(timestamp >= "2018/05/25" & timestamp <= "2018/07/06 11:40") %>%
+  subset(timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
+         timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
+         timestamp >= as.POSIXct("2018-06-11 00:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
+         timestamp >= as.POSIXct("2018-06-25 23:50:00") & timestamp <= as.POSIXct("2018-06-27 12:14:00") |
+         timestamp >= as.POSIXct("2018-07-05 18:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")) %>%
   select(timestamp,
          in1.m_flow,
          dryout.m_flow)
+#View(DS.inflow)
 ## Melt inflow Dataset 
 DS.inflow.m <- (DS.inflow) %>%
   melt(id = "timestamp")
@@ -71,25 +76,26 @@ ggplot(DS.inflow.m, aes(x = timestamp))+
 # DS.inflow for correction
 
 # Log transform for normailty correction
-DS.inflow <- DS.flow %>%
-  mutate(trans.in1 = log(in1.m_flow),
-         trans.dryout = log(dryout.m_flow),
-         roll.tran.in = rollapply(trans.in1),
-         roll.tram.dry = rollapply(trans.dryout))
-DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
-DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
+DS.inflow <- DS.flow3 %>%
+  mutate(trans.in1 = log(in1.m_flow))
+#DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
+#DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
 DS.inflow$trans.in1[which(is.nan(DS.inflow$trans.in1))] = NA
 DS.inflow$trans.in1[which(DS.inflow$trans.in1==Inf)] = NA
 #View(DS.inflow)
 
-## Autocorrelation Correction
+# # rolling average 
+# DS.inflow <- DS.inflow %>%
+#   mutate(roll.tran.in = rollapply(trans.in1),
+#          roll.tram.dry = rollapply(trans.dryout))
+# ## Autocorrelation Correction
 
 
 
 ## Primary inlet diagnosis and correction
 # Begin with linear model analysis
 ## linear regression of inflow methods
-linear <- lm((trans.dryout) ~ (trans.in1), data = DS.inflow)
+linear <- lm((dryout.m_flow) ~ (trans.in1), data = DS.inflow)
 #linear <- lm(log(dryout.m_flow+0.01) ~ log(in1.m_flow+0.01), data = DS.flow.both)
 summary(linear)
 
@@ -98,28 +104,28 @@ summary(linear)
 #   geom_point(aes(timestamp,in1.m_flow),color='red',alpha=0.5)
 
 # Call:
-#   lm(formula = (dryout.m_flow) ~ in1.m_flow, data = DS.flow.both)
+#   lm(formula = (dryout.m_flow) ~ (in1.m_flow), data = DS.inflow)
 # 
 # Residuals:
 #   Min        1Q    Median        3Q       Max 
-# -0.129043 -0.001340 -0.000467  0.000153  0.105050 
+# -0.133503 -0.005864 -0.004338 -0.002187  0.101011 
 # 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 6.251e-03  4.862e-05   128.6   <2e-16 ***
-#   in1.m_flow  1.838e+00  5.938e-03   309.6   <2e-16 ***
+# (Intercept) 0.0102683  0.0002913   35.26   <2e-16 ***
+#   in1.m_flow  1.8442253  0.0096259  191.59   <2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
-# Residual standard error: 0.007289 on 22903 degrees of freedom
-# (617 observations deleted due to missingness)
-# Multiple R-squared:  0.8071,	Adjusted R-squared:  0.8071 
-# F-statistic: 9.582e+04 on 1 and 22903 DF,  p-value: < 2.2e-16
+# Residual standard error: 0.01686 on 4006 degrees of freedom
+# (80 observations deleted due to missingness)
+# Multiple R-squared:  0.9016,	Adjusted R-squared:  0.9016 
+# F-statistic: 3.671e+04 on 1 and 4006 DF,  p-value: < 2.2e-16
 
 
 # Check model mean residuals -- should be near zero
 mean(linear$residuals)
-# Resutns: -1.289417e-19
+# Resutns:  2.340595e-18
 # Equal variance check
 par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
 plot(linear)
@@ -133,33 +139,32 @@ DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
 linear2 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
 
-
-
-
-
 ## Review model
 summary(linear2)
+
 # Returns:
 # Call:
 #   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
 # 
 # Residuals:
 #   Min        1Q    Median        3Q       Max 
-# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
+# -0.121376 -0.001139 -0.000852 -0.000237  0.112591 
 # 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
-#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
-#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
+# (Intercept) 0.0105507  0.0001544   68.34   <2e-16 ***
+#   in1.m_flow  1.8212405  0.0051060  356.69   <2e-16 ***
+#   lag1        0.8489531  0.0083806  101.30   <2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
-# Residual standard error: 0.003931 on 22901 degrees of freedom
-# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
-# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
+# Residual standard error: 0.008935 on 4004 degrees of freedom
+# Multiple R-squared:  0.9724,	Adjusted R-squared:  0.9724 
+# F-statistic: 7.049e+04 on 2 and 4004 DF,  p-value: < 2.2e-16
+
+
 mean(linear2$residuals)
-# returns: -2.598854e-19
+# returns: ] -1.353468e-19
 acf(linear2$residuals)
 # Below checks all assumptions of linear regression
 #gvlma(quad)
