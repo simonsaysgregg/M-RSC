@@ -163,7 +163,8 @@ RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index)
 ## Calculates mean of Duration & Rainfall Accumulaiton 
 # Returns a data frame of values same length as list
 Rainsum <- RainEvents %>%
-  map_df(function(df) {summarise(df, Duration = ((max(timestamp)-min(timestamp))/3600),
+  map_df(function(df) {summarise(df, start = min(timestamp),
+                                 Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall.mm, na.rm = TRUE),
                                  max.intensity5 = max(int.5min, na.rm = TRUE),
                                  runoff.est.in1 = runoff.in1(Accumulation, CN = 86),
@@ -176,6 +177,7 @@ Rainsum <- RainEvents %>%
                                  out.vol = sum(out.flow, na.rm = TRUE) * (Duration * 3600),
                                  out.vol.roll = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600))})
 # View(Rainsum)
+
 
 ## Mutate to provide additional hydrology analsis
 Rainsum_event_analysis <- (Rainsum) %>%
