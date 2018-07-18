@@ -164,6 +164,7 @@ RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index)
 # Returns a data frame of values same length as list
 Rainsum <- RainEvents %>%
   map_df(function(df) {summarise(df, start = min(timestamp),
+                                 end = max(timestamp),
                                  Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall.mm, na.rm = TRUE),
                                  max.intensity5 = max(int.5min, na.rm = TRUE),
