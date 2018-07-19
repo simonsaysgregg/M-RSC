@@ -155,6 +155,32 @@ RSC.hydro.m$storm.index <- (RSC.hydro.m$storm.index) %>%
                             replace_na(0)
 # View(RSC.hydro.m)
 
+## Antecedant dry period analysis
+## Similar to rainfall event delineation
+# Exstract from Drizzle0.9.5 + modified
+event <- RSC.hydro.m$storm.index
+event[event != 0] <- NA
+ADP.index <- cumsum(diff(!is.na(c(NA, (event)))) > 0) + (0*event)
+# Add ADP index as new variable
+RSC.hydro.m[, "ADP.index"] <- ADP.index
+#Replace index NAs with zero
+RSC.hydro.m$ADP.index[is.na(RSC.hydro.m$ADP.index)] <- 0 
+# Confirm
+# View(RSC.hydro.m)
+
+## Summary of ADP
+ADP.sum <- (RSC.hydro.m) %>%
+  group_by(ADP.index) %>%
+  summarise(duation = (max(timestamp) - min(timestamp))) 
+#View(ADP.sum)
+# Range in days
+# 1.02-81.67
+# Median in days
+# 3.73
+ADP.26 <- RSC.hydro.m %>%
+  subset(ADP.index == 15)
+View(ADP.26)
+
 ## Split into list of events
 RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index) 
 # Returns a list of events 
