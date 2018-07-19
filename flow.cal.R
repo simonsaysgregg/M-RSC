@@ -51,35 +51,46 @@ corr.events <- (DS.events) %>%
 
 ## Create a INflow dataset
 DS.inflow <- (DS.flow) %>%
-  subset(timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
-         timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
-         timestamp >= as.POSIXct("2018-06-11 00:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
-         timestamp >= as.POSIXct("2018-06-25 23:50:00") & timestamp <= as.POSIXct("2018-06-27 12:14:00") |
-         timestamp >= as.POSIXct("2018-07-05 18:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")) %>%
   select(timestamp,
          in1.m_flow,
-         dryout.m_flow)
+         dryout.m_flow)%>%
+  mutate(weir = rollapply(in1.m_flow, 15, mean, fill = NA),
+         dryout = rollapply(dryout.m_flow, 15, mean, fill = NA))%>%
+  subset(#timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
+         #timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
+         #timestamp >= as.POSIXct("2018-06-10 20:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
+         timestamp >= as.POSIXct("2018-06-25 23:50:00") & timestamp <= as.POSIXct("2018-06-27 12:14:00") |
+         timestamp >= as.POSIXct("2018-07-05 13:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")) 
 #View(DS.inflow)
 ## Melt inflow Dataset 
 DS.inflow.m <- (DS.inflow) %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
   melt(id = "timestamp")
 #View(DS.inflow.m)
-# Plot events for calibration
+## Plot events for calibration
 ggplot(DS.inflow.m, aes(x = timestamp))+
-  geom_line(aes(y = value, linetype = variable))+
-  scale_linetype_manual(values = c("solid", "longdash"), labels = c("Weir", "Outlet"))+
+  geom_point(aes(y = value, color = variable))+
+  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+##Plot relationship
+ggplot(DS.inflow, aes(x = weir, y = dryout))+
+  geom_point()+
+  geom_abline(aes(intercept = 0, slope = 1))
 
 ## Creation of dataset for analysis & correction 
 # DS.inflow for correction
 
 # Log transform for normailty correction
-DS.inflow <- DS.flow3 %>%
-  mutate(trans.in1 = log(in1.m_flow))
-#DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
-#DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
+DS.inflow <- DS.inflow %>%
+  mutate(trans.in1 = log(in1.m_flow +0.01),
+         trans.dryout = log(dryout.m_flow +0.01))
+DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
+DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
 DS.inflow$trans.in1[which(is.nan(DS.inflow$trans.in1))] = NA
 DS.inflow$trans.in1[which(DS.inflow$trans.in1==Inf)] = NA
 #View(DS.inflow)
@@ -95,32 +106,29 @@ DS.inflow$trans.in1[which(DS.inflow$trans.in1==Inf)] = NA
 ## Primary inlet diagnosis and correction
 # Begin with linear model analysis
 ## linear regression of inflow methods
-linear <- lm((dryout.m_flow) ~ (trans.in1), data = DS.inflow)
+linear <- lm((dryout.m_flow) ~ (in1.m_flow), data = DS.inflow)
 #linear <- lm(log(dryout.m_flow+0.01) ~ log(in1.m_flow+0.01), data = DS.flow.both)
 summary(linear)
 
-# ggplot(DS.flow)+
-#   geom_point(aes(timestamp,dryout.m_flow))+
-#   geom_point(aes(timestamp,in1.m_flow),color='red',alpha=0.5)
 
 # Call:
-#   lm(formula = (dryout.m_flow) ~ (in1.m_flow), data = DS.inflow)
+#   lm(formula = (trans.dryout) ~ (trans.in1), data = DS.inflow)
 # 
 # Residuals:
-#   Min        1Q    Median        3Q       Max 
-# -0.133503 -0.005864 -0.004338 -0.002187  0.101011 
+#   Min       1Q   Median       3Q      Max 
+# -2.25545 -0.18603 -0.11058  0.00889  1.66106 
 # 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 0.0102683  0.0002913   35.26   <2e-16 ***
-#   in1.m_flow  1.8442253  0.0096259  191.59   <2e-16 ***
+# (Intercept) 0.714674   0.031023   23.04   <2e-16 ***
+#   trans.in1   1.027940   0.007308  140.66   <2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
-# Residual standard error: 0.01686 on 4006 degrees of freedom
-# (80 observations deleted due to missingness)
-# Multiple R-squared:  0.9016,	Adjusted R-squared:  0.9016 
-# F-statistic: 3.671e+04 on 1 and 4006 DF,  p-value: < 2.2e-16
+# Residual standard error: 0.3734 on 4234 degrees of freedom
+# (122 observations deleted due to missingness)
+# Multiple R-squared:  0.8237,	Adjusted R-squared:  0.8237 
+# F-statistic: 1.978e+04 on 1 and 4234 DF,  p-value: < 2.2e-16
 
 
 # Check model mean residuals -- should be near zero
@@ -143,24 +151,25 @@ linear2 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
 summary(linear2)
 
 # Returns:
+
 # Call:
-#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
+#   lm(formula = (dryout) ~ weir + lag1, data = DS.flow3)
 # 
 # Residuals:
 #   Min        1Q    Median        3Q       Max 
-# -0.121376 -0.001139 -0.000852 -0.000237  0.112591 
+# -0.108462 -0.000134 -0.000073 -0.000029  0.135456 
 # 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 0.0105507  0.0001544   68.34   <2e-16 ***
-#   in1.m_flow  1.8212405  0.0051060  356.69   <2e-16 ***
-#   lag1        0.8489531  0.0083806  101.30   <2e-16 ***
+# (Intercept) 9.896e-03  6.186e-05   160.0   <2e-16 ***
+#   weir        1.980e+00  1.900e-03  1041.8   <2e-16 ***
+#   lag1        9.807e-01  3.044e-03   322.1   <2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
-# Residual standard error: 0.008935 on 4004 degrees of freedom
-# Multiple R-squared:  0.9724,	Adjusted R-squared:  0.9724 
-# F-statistic: 7.049e+04 on 2 and 4004 DF,  p-value: < 2.2e-16
+# Residual standard error: 0.003596 on 4133 degrees of freedom
+# Multiple R-squared:  0.9965,	Adjusted R-squared:  0.9965 
+# F-statistic: 5.942e+05 on 2 and 4133 DF,  p-value: < 2.2e-16
 
 
 mean(linear2$residuals)
