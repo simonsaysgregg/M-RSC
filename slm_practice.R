@@ -8,6 +8,7 @@ require("corrplot")     # A graphical display of a correlation matrix between al
 ## Statistical analysis
 require("stats")        # Lots of stats stuff
 ## Data management
+require("timeSeries")
 require("plyr")         # Allows you t split data structure into groups (pollutant type, location, etc.) and apply function on each group
 require("dplyr")
 require("zoo")          # Helps streamline data if you have irregular time series
@@ -136,48 +137,54 @@ par(mfrow=c(2,2))
 plot(lm1)
 
 ## normality and autocorrelation corrections
-# rolling average 30-min window plus lag1
-# Acrsin sqrt transform response
-flow.short.corr <- flow.short %>%
-transmute(weir = rollapply(in1.m_flow, 15, mean, fill = NA),
-           dryout = rollapply(dryout.m_flow, 15, mean, fill = NA),
-           log.weir = log(weir + 0.01),
-           log.dryout = log(dryout + 0.01),
-           arc.dryout = asin(sqrt(dryout.m_flow)),
-           arc.dryout.roll = asin(sqrt(dryout)))
-View(flow.short.corr)
+# average values over 20-min non-rolling
+weir <- aggregate(list(flow.short$in1.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
+dryout <- aggregate(list(flow.short$dryout.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
+# add to new dataframe
+flow.short.corr <- data.frame(weir)
+colnames(flow.short.corr) <- c("timestamp", "weir")
+# Repeat for dryout to new dataframe
+scrap <- data.frame(dryout)
+colnames(scrap) <- c("timestamp", "dryout")
+## Join dryout data
+flow.short.corr <- left_join(flow.short.corr, scrap, by = "timestamp") 
+#View(flow.short.corr)
+## Remove na
+flow.short.corr <- na.omit(flow.short.corr)
+# mutate for appropriate normality corrections
+flow.short.corr <- flow.short.corr %>%
+mutate(log.weir = log(weir + 0.01),
+       log.dryout = log(dryout + 0.01))
+#View(flow.short.corr)
 
-lm1 <- lm(log.dryout ~ log.weir, data = flow.short.corr)
+##lm
+lm1 <- lm(dryout ~ log.weir, data = flow.short.corr[-c(24),])
 summary(lm1)
 par(mfrow=c(2,2))
 plot(lm1)
 
+## autocorrelation factor
+acf(lm1$residuals)
+
 # Rectify autocorrelation
-DS.flow1 <- na.omit(flow.short.corr)
+DS.flow1 <- na.omit(flow.short.corr[-c(24),])
 resid_linear <- lm1$residuals
 DS.flow1[, "resid_linear"] <- resid_linear
 DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
 
-lm2 <- lm(log.dryout ~ log.weir + lag1, data = DS.flow3)
+lm2 <- lm(dryout ~ log.weir + lag1, data = DS.flow3[-c(2,1,22,61),])
 summary(lm2)
 par(mfrow=c(2,2))
 plot(lm2)
 
+## autocorrelation factor
 acf(lm2$residuals)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#Root mean square error:
+RSS <- c(crossprod(lm2$residuals))
+  
+MSE <- RSS / length(lm2$residuals)
+  
+RMSE <- sqrt(MSE)
+# View(RMSE)
