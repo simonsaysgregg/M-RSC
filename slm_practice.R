@@ -158,7 +158,7 @@ mutate(log.weir = log(weir + 0.01),
 #View(flow.short.corr)
 
 ##lm
-lm1 <- lm(dryout ~ log.weir, data = flow.short.corr[-c(24),])
+lm1 <- lm(dryout ~ weir, data = flow.short.corr[,])
 summary(lm1)
 par(mfrow=c(2,2))
 plot(lm1)
@@ -167,13 +167,13 @@ plot(lm1)
 acf(lm1$residuals)
 
 # Rectify autocorrelation
-DS.flow1 <- na.omit(flow.short.corr[-c(24),])
+DS.flow1 <- na.omit(flow.short.corr[,])
 resid_linear <- lm1$residuals
 DS.flow1[, "resid_linear"] <- resid_linear
 DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
 
-lm2 <- lm(dryout ~ log.weir + lag1, data = DS.flow3[-c(2,1,22,61),])
+lm2 <- lm(dryout ~ weir + lag1, data = DS.flow3[,])
 summary(lm2)
 par(mfrow=c(2,2))
 plot(lm2)
