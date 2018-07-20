@@ -171,12 +171,12 @@ RSC.hydro.m$ADP.index[is.na(RSC.hydro.m$ADP.index)] <- 0
 ## Summary of ADP
 ADP.sum <- (RSC.hydro.m) %>%
   group_by(ADP.index) %>%
-  summarise(duation = (max(timestamp) - min(timestamp))) 
+  summarise(duation = difftime(max(timestamp), min(timestamp), units = "days")) 
 #View(ADP.sum)
 # Range in days
-# 1.02-81.67
+# 0.01250 13.99028
 # Median in days
-# 3.73
+# 2.26
 ADP.26 <- RSC.hydro.m %>%
   subset(ADP.index == 15)
 View(ADP.26)
