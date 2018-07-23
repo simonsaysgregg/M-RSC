@@ -213,6 +213,7 @@ Rainsum_event_analysis <- (Rainsum) %>%
          flow.vol.perc_diff.roll = ((as.numeric(in.sum) - as.numeric(out.vol.roll)) / as.numeric(in.sum)) * 100,
          flow.vol.perc_diff = ((as.numeric(in.sum) - as.numeric(out.vol)) / as.numeric(in.sum)) * 100)
 #View(Rainsum_event_analysis)
+
 ## Summarise rainfall info
 Rainfall_event.summary <- (Rainsum[-1, ]) %>%
   select(Duration,
@@ -220,6 +221,12 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
          max.intensity5) %>%
   summarise_all(funs(median, min, max), na.rm = TRUE) 
 #View(Rainfall_event.summary)
+
+## Determine events where correction model applies
+Rainsum.corr <- (Rainsum) %>%
+  subset(Accumulation >= 6.350 & Accumulation <= 38.608 &
+         max.intensity5 >= 13.716 & max.intensity5 <= 109.728)
+#View(Rainsum.corr)
 
 ## Write .csv file for exporting data frames
 write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
