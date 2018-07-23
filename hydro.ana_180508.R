@@ -195,14 +195,14 @@ Rainsum <- RainEvents %>%
                                  Accumulation = sum(rainfall.mm, na.rm = TRUE),
                                  max.intensity5 = max(int.5min, na.rm = TRUE),
                                  runoff.est.in1 = runoff.in1(Accumulation, CN = 86),
-                                 in1.vol = sum(in1.m_flow, na.rm = TRUE) * (Duration * 3600),
-                                 dryout.vol = sum(dryout.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 in1.vol = sum(in1.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+                                 dryout.vol = sum(dryout.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
                                  runoff.est.in2 = runoff.in2(Accumulation, CN = 84),
-                                 in2.vol = sum(in2.m_flow, na.rm = TRUE) * (Duration * 3600),
-                                 in2.hobo.vol = sum(in2.hobo.m_flow, na.rm = TRUE) * (Duration * 3600),
+                                 in2.vol = sum(in2.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+                                 in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
                                  runoff.est.runon = runoff.runon(Accumulation, CN = 87),
-                                 out.vol = sum(out.flow, na.rm = TRUE) * (Duration * 3600),
-                                 out.vol.roll = sum(out.flow.roll.ASABE, na.rm = TRUE) * (Duration * 3600))})
+                                 out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600),
+                                 out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE) * (Duration * 3600))})
 # View(Rainsum)
 
 
@@ -225,7 +225,10 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
 ## Determine events where correction model applies
 Rainsum.corr <- (Rainsum) %>%
   subset(Accumulation >= 6.350 & Accumulation <= 38.608 &
-         max.intensity5 >= 13.716 & max.intensity5 <= 109.728)
+         max.intensity5 >= 13.716 & max.intensity5 <= 109.728)  %>%
+  mutate(in.sum = in1.vol + in2.hobo.vol + runoff.est.runon,
+         flow.vol.perc_diff.roll = ((as.numeric(in.sum) - as.numeric(out.vol.roll)) / as.numeric(in.sum)) * 100,
+         inflow.vol.perc_diff = ((as.numeric(dryout.vol) - as.numeric(in1.vol)) / as.numeric(dryout.vol)) * 100)
 #View(Rainsum.corr)
 
 ## Write .csv file for exporting data frames
