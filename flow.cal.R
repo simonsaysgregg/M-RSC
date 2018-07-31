@@ -1,4 +1,5 @@
 ## For flow calibration and diagnostic analysis
+# Creation of calibration model for inflow corrections
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
@@ -9,6 +10,7 @@ require("corrplot")     # A graphical display of a correlation matrix between al
 ## Statistical analysis
 require("stats")        # Lots of stats stuff
 ## Data management
+require("timeSeries")
 require("plyr")         # Allows you t split data structure into groups (pollutant type, location, etc.) and apply function on each group
 require("dplyr")
 require("zoo")          # Helps streamline data if you have irregular time series
@@ -54,14 +56,15 @@ DS.inflow <- (DS.flow) %>%
   select(timestamp,
          in1.m_flow,
          dryout.m_flow)%>%
-  mutate(weir = rollapply(in1.m_flow, 15, mean, fill = NA),
-         dryout = rollapply(dryout.m_flow, 15, mean, fill = NA))%>%
   subset(#timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
-         #timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
-         #timestamp >= as.POSIXct("2018-06-10 20:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
-         timestamp >= as.POSIXct("2018-06-25 23:50:00") & timestamp <= as.POSIXct("2018-06-27 12:14:00") |
-         timestamp >= as.POSIXct("2018-07-05 13:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")) 
+    # timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
+    # timestamp >= as.POSIXct("2018-06-10 20:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
+    timestamp >= as.POSIXct("2018-06-26 07:50:00") & timestamp <= as.POSIXct("2018-06-26 20:14:00") |
+      timestamp >= as.POSIXct("2018-07-05 13:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")
+  ) 
 #View(DS.inflow)
+
+## Diagnostic Plots
 ## Melt inflow Dataset 
 DS.inflow.m <- (DS.inflow) %>%
   select(timestamp,
@@ -76,279 +79,401 @@ ggplot(DS.inflow.m, aes(x = timestamp))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
-
-##Plot relationship
-ggplot(DS.inflow, aes(x = weir, y = dryout))+
+## scatter plot DS.inflow
+ggplot(DS.inflow, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
+  geom_smooth(method = lm)+
   geom_abline(aes(intercept = 0, slope = 1))
+## box plots DS.inflow
+ggplot(DS.inflow.m)+
+  geom_boxplot(aes(x = variable, y = value))
+## Density DS.inflow
+# Weir
+ggplot(DS.inflow, aes(x = in1.m_flow))+
+  geom_density()
+# Outlet Structure
+ggplot(DS.inflow, aes(x = dryout.m_flow))+
+  geom_density()
 
-## Creation of dataset for analysis & correction 
-# DS.inflow for correction
+## subset flow values to remove low event flows
+flow.short <- DS.inflow %>%
+  subset(in1.m_flow >= 0.05)
+#View(flow.short)
+# melt
+flow.short.m <- flow.short %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
+  melt(id = "timestamp")
 
-# Log transform for normailty correction
-DS.inflow <- DS.inflow %>%
-  mutate(trans.in1 = log(in1.m_flow +0.01),
-         trans.dryout = log(dryout.m_flow +0.01))
-DS.inflow$trans.dryout[which(is.nan(DS.inflow$trans.dryout))] = NA
-DS.inflow$trans.dryout[which(DS.inflow$trans.dryout==Inf)] = NA
-DS.inflow$trans.in1[which(is.nan(DS.inflow$trans.in1))] = NA
-DS.inflow$trans.in1[which(DS.inflow$trans.in1==Inf)] = NA
-#View(DS.inflow)
+## Diagnostic Plots
+## Plot events for calibration
+ggplot(DS.inflow.m, aes(x = timestamp))+
+  geom_point(aes(y = value, color = variable))+
+  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+## scatter plot
+ggplot(flow.short, aes(x = in1.m_flow, y = dryout.m_flow))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  geom_abline(aes(intercept = 0, slope = 1))
+## box plots
+ggplot(flow.short.m)+
+  geom_boxplot(aes(x = variable, y = value))
+## Density
+# Weir
+ggplot(flow.short, aes(x = in1.m_flow))+
+  geom_density()
+# Outlet Structure
+ggplot(DS.inflow, aes(x = dryout.m_flow))+
+  geom_density()
 
-# # rolling average 
-# DS.inflow <- DS.inflow %>%
-#   mutate(roll.tran.in = rollapply(trans.in1),
-#          roll.tram.dry = rollapply(trans.dryout))
-# ## Autocorrelation Correction
+## lm
+## diagnostic plots
+lm1 <- lm(dryout.m_flow ~ in1.m_flow, data = flow.short)
+summary(lm1)
+par(mfrow=c(2,2))
+plot(lm1)
 
+## normality and autocorrelation corrections
+# average values over 20-min non-rolling
+weir <- aggregate(list(flow.short$in1.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
+dryout <- aggregate(list(flow.short$dryout.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
+# add to new dataframe
+flow.short.corr <- data.frame(weir)
+colnames(flow.short.corr) <- c("timestamp", "weir")
+# Repeat for dryout to new dataframe
+scrap <- data.frame(dryout)
+colnames(scrap) <- c("timestamp", "dryout")
+## Join dryout data
+flow.short.corr <- left_join(flow.short.corr, scrap, by = "timestamp") 
+#View(flow.short.corr)
+## Remove na
+flow.short.corr <- na.omit(flow.short.corr)
+# mutate for appropriate normality corrections
+flow.short.corr <- flow.short.corr %>%
+  mutate(log.weir = log(weir + 0.01),
+         log.dryout = log(dryout + 0.01))
+#View(flow.short.corr)
 
+##lm
+lm1.1 <- lm(dryout ~ weir, data = flow.short.corr[,])
+summary(lm1.1)
+par(mfrow=c(2,2))
+plot(lm1.1)
 
-## Primary inlet diagnosis and correction
-# Begin with linear model analysis
-## linear regression of inflow methods
-linear <- lm((dryout.m_flow) ~ (in1.m_flow), data = DS.inflow)
-#linear <- lm(log(dryout.m_flow+0.01) ~ log(in1.m_flow+0.01), data = DS.flow.both)
-summary(linear)
+## autocorrelation factor
+acf(lm1.1$residuals)
 
-
-# Call:
-#   lm(formula = (trans.dryout) ~ (trans.in1), data = DS.inflow)
-# 
-# Residuals:
-#   Min       1Q   Median       3Q      Max 
-# -2.25545 -0.18603 -0.11058  0.00889  1.66106 
-# 
-# Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 0.714674   0.031023   23.04   <2e-16 ***
-#   trans.in1   1.027940   0.007308  140.66   <2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.3734 on 4234 degrees of freedom
-# (122 observations deleted due to missingness)
-# Multiple R-squared:  0.8237,	Adjusted R-squared:  0.8237 
-# F-statistic: 1.978e+04 on 1 and 4234 DF,  p-value: < 2.2e-16
-
-
-# Check model mean residuals -- should be near zero
-mean(linear$residuals)
-# Resutns:  2.340595e-18
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(linear)
-# Autocorrelation check
-acf(linear$residuals)
 # Rectify autocorrelation
-DS.flow1 <- na.omit(DS.inflow)
-resid_linear <- linear$residuals
+DS.flow1 <- na.omit(flow.short.corr[,])
+resid_linear <- lm1.1$residuals
 DS.flow1[, "resid_linear"] <- resid_linear
 DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
 DS.flow3 <- na.omit(DS.flow2)
-linear2 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
 
-## Review model
-summary(linear2)
+lm2 <- lm(dryout ~ weir + lag1, data = DS.flow3[,])
+summary(lm2)
+par(mfrow=c(2,2))
+plot(lm2)
 
-# Returns:
+## autocorrelation factor
+acf(lm2$residuals)
 
-# Call:
-#   lm(formula = (dryout) ~ weir + lag1, data = DS.flow3)
-# 
-# Residuals:
-#   Min        1Q    Median        3Q       Max 
-# -0.108462 -0.000134 -0.000073 -0.000029  0.135456 
-# 
-# Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 9.896e-03  6.186e-05   160.0   <2e-16 ***
-#   weir        1.980e+00  1.900e-03  1041.8   <2e-16 ***
-#   lag1        9.807e-01  3.044e-03   322.1   <2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.003596 on 4133 degrees of freedom
-# Multiple R-squared:  0.9965,	Adjusted R-squared:  0.9965 
-# F-statistic: 5.942e+05 on 2 and 4133 DF,  p-value: < 2.2e-16
+#Root mean square error:
+RSS <- c(crossprod(lm2$residuals))
 
+MSE <- RSS / length(lm2$residuals)
 
-mean(linear2$residuals)
-# returns: ] -1.353468e-19
-acf(linear2$residuals)
-# Below checks all assumptions of linear regression
-#gvlma(quad)
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(linear2)
+RMSE <- sqrt(MSE)
+# View(RMSE)
+# Returns: 0.01208794
 
-## Remove outliers denoted from previous model
-linear3 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
-summary(linear3)
-# Returns:
-# Call:
-#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
-#                                                                        230884, 240069, 240088, 251228, 251458), ])
-# 
-# Residuals:
-#   Min        1Q    Median        3Q       Max 
-# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
-# 
-# Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
-#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
-#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.003931 on 22901 degrees of freedom
-# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
-# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
+## Repeat with all events 
+## Create a INflow dataset
+DS.inflow1 <- (DS.flow) %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
+  subset(timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
+           timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
+           timestamp >= as.POSIXct("2018-06-10 20:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
+           timestamp >= as.POSIXct("2018-06-26 07:50:00") & timestamp <= as.POSIXct("2018-06-26 20:14:00") |
+           timestamp >= as.POSIXct("2018-07-05 13:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")) 
+#View(DS.inflow1)
 
-# Check model mean residuals -- should be near zero
-mean(linear3$residuals)
-# Resutns:  -2.598854e-19
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(linear3)
+## Diagnostic Plots
+## Melt inflow Dataset 
+DS.inflow1.m <- (DS.inflow1) %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
+  melt(id = "timestamp")
+#View(DS.inflow1.m)
+## Plot events for calibration
+ggplot(DS.inflow1.m, aes(x = timestamp))+
+  geom_point(aes(y = value, color = variable))+
+  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+## scatter plot DS.inflow
+ggplot(DS.inflow1, aes(x = in1.m_flow, y = dryout.m_flow))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  geom_abline(aes(intercept = 0, slope = 1))
+## box plots DS.inflow
+ggplot(DS.inflow1.m)+
+  geom_boxplot(aes(x = variable, y = value))
+## Density DS.inflow
+# weir
+ggplot(DS.inflow1, aes(x = in1.m_flow))+
+  geom_density()
+# Outlet structure
+ggplot(DS.inflow1, aes(x = dryout.m_flow))+
+  geom_density()
 
-## Remove outliers denoted from previous model
-linear4 <- lm((dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
-summary(linear4)
-# Returns:
-# Call:
-#   lm(formula = (dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
-#                                                                        230884, 240069, 240088, 251228, 251458), ])
-# 
-# Residuals:
-#   Min        1Q    Median        3Q       Max 
-# -0.118182 -0.000322 -0.000072  0.000068  0.113143 
-# 
-# Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) 6.307e-03  2.622e-05   240.6   <2e-16 ***
-#   in1.m_flow  1.787e+00  3.209e-03   557.0   <2e-16 ***
-#   lag1        8.440e-01  3.571e-03   236.3   <2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.003931 on 22901 degrees of freedom
-# Multiple R-squared:  0.9439,	Adjusted R-squared:  0.9439 
-# F-statistic: 1.927e+05 on 2 and 22901 DF,  p-value: < 2.2e-16
+## subset flow values to remove low event flows
+flow.short1 <- DS.inflow1 %>%
+  subset(in1.m_flow >= 0.05)
+#View(flow.short1)
+# melt
+flow.short1.m <- flow.short1 %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
+  melt(id = "timestamp")
 
-# Check model mean residuals -- should be near zero
-mean(linear4$residuals)
-# Resutns:   -2.598854e-19
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(linear4)
+## Diagnostic Plots
+## Plot events for calibration
+ggplot(DS.inflow1.m, aes(x = timestamp))+
+  geom_point(aes(y = value, color = variable))+
+  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+## scatter plot
+ggplot(flow.short1, aes(x = in1.m_flow, y = dryout.m_flow))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  geom_abline(aes(intercept = 0, slope = 1))
+## box plots
+ggplot(flow.short1.m)+
+  geom_boxplot(aes(x = variable, y = value))
+## Density
+# Weir
+ggplot(flow.short1, aes(x = in1.m_flow))+
+  geom_density()
+# Outlet Structure
+ggplot(DS.inflow1, aes(x = dryout.m_flow))+
+  geom_density()
 
-## log transform previous model
-linear5 <- lm(log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 230884, 240069, 240088, 251228, 251458), ])
-summary(linear5)
-# Returns:
-# Call:
-#   lm(formula = log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3[-c(230883, 
-#                                                                           230884, 240069, 240088, 251228, 251458), ])
-# 
-# Residuals:
-#   Min      1Q  Median      3Q     Max 
-# -3.2351 -0.0418  0.0524  0.1165  4.7036 
-# 
-# Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) -5.143636   0.002177 -2363.1   <2e-16 ***
-#   in1.m_flow  40.305574   0.266414   151.3   <2e-16 ***
-#   lag1        36.786045   0.296475   124.1   <2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 0.3263 on 22901 degrees of freedom
-# Multiple R-squared:  0.6415,	Adjusted R-squared:  0.6414 
-# F-statistic: 2.049e+04 on 2 and 22901 DF,  p-value: < 2.2e-16
+## lm
+## diagnostic plots
+lm10.1 <- lm(dryout.m_flow ~ in1.m_flow, data = flow.short1)
+summary(lm10.1)
+par(mfrow=c(2,2))
+plot(lm10.1)
 
-# Check model mean residuals -- should be near zero
-mean(linear5$residuals)
-# Resutns:  -2.811963e-16
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(linear5)
+## normality and autocorrelation corrections
+# average values over 20-min non-rolling
+weir <- aggregate(list(flow.short1$in1.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "20 mins")), FUN = mean)
+dryout <- aggregate(list(flow.short1$dryout.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "20 mins")), FUN = mean)
+# add to new dataframe
+flow.short1.corr <- data.frame(weir)
+colnames(flow.short1.corr) <- c("timestamp", "weir")
+# Repeat for dryout to new dataframe
+scrap1 <- data.frame(dryout)
+colnames(scrap1) <- c("timestamp", "dryout")
+## Join dryout data
+flow.short1.corr <- left_join(flow.short1.corr, scrap1, by = "timestamp") 
+#View(flow.short1.corr)
+## Remove na
+flow.short1.corr <- na.omit(flow.short1.corr)
+# mutate for appropriate normality corrections
+flow.short1.corr <- flow.short1.corr %>%
+  mutate(log.weir = log(weir + 0.01),
+         log.dryout = log(dryout + 0.01))
+#View(flow.short1.corr)
 
-## Polynomial regression of inflow methods
-quad <- lm(log(dryout.m_flow) ~ in1.m_flow + I(in1.m_flow^2), data = DS.flow)
-summary(quad)
-# Check model mean residuals -- should be near zero
-mean(quad$residuals)
-# resutns:  2.710028e-16
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(quad)
+##lm
+lm10.2 <- lm(dryout ~ weir, data = flow.short1.corr[,])
+summary(lm10.2)
+par(mfrow=c(2,2))
+plot(lm10.2)
 
-# Autocorrelation check
-acf(quad$residuals)
+## autocorrelation factor
+acf(lm10.2$residuals)
 
 # Rectify autocorrelation
-DS.flowq1 <- na.omit(DS.flow.both)
-resid_quad <- quad$residuals
-DS.flowq1[, "resid_quad"] <- resid_quad
-DS.flowq2 <- slide(DS.flowq1, Var="resid_quad", NewVar = "lag1", slideBy = -1)
-DS.flowq3 <- na.omit(DS.flowq2)
-quad2 <- lm(log(dryout.m_flow) ~ in1.m_flow + lag1, data = DS.flow3)
+DS.flow10.2 <- na.omit(flow.short1.corr[,])
+resid_linear <- lm10.2$residuals
+DS.flow1.1[, "resid_linear"] <- resid_linear
+DS.flow2.1 <- slide(DS.flow1.1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+DS.flow3.1 <- na.omit(DS.flow2.1)
 
-# Review model
-summary(quad2)
-mean(quad2$residuals)
-# returns: -3.182592e-17
-acf(quad2$residuals)
-gvlma(quad2)
+lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow3.1[-c(32,33,9,10),])
+summary(lm20.1)
+par(mfrow=c(2,2))
+plot(lm20.1)
 
-# Equal variance check
-par(mfrow=c(2,2))  # set 2 rows and 2 column plot layout
-plot(quad2)
+# Call:
+#   lm(formula = dryout ~ weir + lag1, data = DS.flow3.1[-c(32, 33, 
+#                                                           9, 10), ])
+# 
+# Residuals:
+#   Min         1Q     Median         3Q        Max 
+# -0.0304952 -0.0017258  0.0005178  0.0026977  0.0203560 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) -0.289160   0.007508  -38.51   <2e-16 ***
+#   weir         5.588461   0.094294   59.27   <2e-16 ***
+#   lag1         0.908847   0.056378   16.12   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.006385 on 66 degrees of freedom
+# Multiple R-squared:  0.9816,	Adjusted R-squared:  0.981 
+# F-statistic:  1757 on 2 and 66 DF,  p-value: < 2.2e-16
 
-## In1 flow correction with polynomial
-##### need to update
-DS.flow.quad <- (DS.flow)%>%
+## autocorrelation factor
+acf(lm20.1$residuals)
+
+#Root mean square error:
+RSS1 <- c(crossprod(lm2.1$residuals))
+
+MSE1 <- RSS1 / length(lm2.1$residuals)
+
+RMSE1 <- sqrt(MSE1)
+# View(RMSE1)
+# Returns: 0.006244323
+
+## Repeat for base flow periods
+## Create a INflow dataset
+DS.baseflow <- (DS.flow) %>%
   select(timestamp,
          in1.m_flow,
          dryout.m_flow)%>%
-  mutate(in1.m_flow.quad = 0.006089 + (2.507 * in1.m_flow) - (8.725 * in1.m_flow^2) + 0.007274)
-#View(DS.flow.quad)
-## Melt in1 flow Dataset 
-DS.flow.quad.melt <- (DS.flow.quad) %>%
-  melt(id = "timestamp")
-#View(DS.flow.quad.melt)
-#plot
-ggplot(DS.flow.quad.melt, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
+  subset( timestamp >= as.POSIXct("2018-05-30 06:28:00") &
+           timestamp <= as.POSIXct("2018-05-30 14:58:00") | timestamp >= as.POSIXct("2018-05-31 11:04:00") &
+           timestamp <= as.POSIXct("2018-06-10 20:20:00") | timestamp >= as.POSIXct("2018-06-11 14:26:00") &
+           timestamp <= as.POSIXct("2018-06-26 07:50:00") | timestamp >= as.POSIXct("2018-06-26 20:14:00") &
+           timestamp <= as.POSIXct("2018-07-05 13:26:00") ) 
+#View(DS.baseflow)
 
-## In1 flow correction with linear model
-DS.flow.lin <- (DS.flow)%>%
+## Diagnostic Plots
+## Melt inflow Dataset 
+DS.baseflow.m <- (DS.baseflow) %>%
   select(timestamp,
          in1.m_flow,
          dryout.m_flow)%>%
-  mutate(in1.m_flow.lin = 0.006251 + (1.838 * in1.m_flow) + 0.007274)
-#View(DS.flow.lin)
-## Melt in1 flow Dataset 
-DS.flow.lin.melt <- (DS.flow.lin) %>%
   melt(id = "timestamp")
-#View(DS.flow.lin.melt)
-#plot
-ggplot(DS.flow.lin.melt, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
+#View(DS.baseflow.m)
+## Plot events for calibration
+ggplot(DS.baseflow.m, aes(x = timestamp))+
+  geom_point(aes(y = value, color = variable))+
+  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+## scatter plot DS.baseflow
+ggplot(DS.baseflow, aes(x = in1.m_flow, y = dryout.m_flow))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  geom_abline(aes(intercept = 0, slope = 1))
+## box plots DS.inflow
+ggplot(DS.baseflow.m)+
+  geom_boxplot(aes(x = variable, y = value))
+## Density DS.inflow
+# weir
+ggplot(DS.baseflow, aes(x = in1.m_flow))+
+  geom_density()
+# Outlet structure
+ggplot(DS.baseflow, aes(x = dryout.m_flow))+
+  geom_density()
+
+## lm Baseflows
+## diagnostic plots
+lm100 <- lm(dryout.m_flow ~ in1.m_flow, data = DS.baseflow)
+summary(lm100)
+par(mfrow=c(2,2))
+plot(lm100)
+
+## normality and autocorrelation corrections
+# average values over 20-min non-rolling
+weir <- aggregate(list(DS.baseflow$in1.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "17 mins")), FUN = mean)
+dryout <- aggregate(list(DS.baseflow$dryout.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "17 mins")), FUN = mean)
+# add to new dataframe
+DS.baseflow.corr <- data.frame(weir)
+colnames(DS.baseflow.corr) <- c("timestamp", "weir")
+# Repeat for dryout to new dataframe
+scrap1 <- data.frame(dryout)
+colnames(scrap1) <- c("timestamp", "dryout")
+## Join dryout data
+DS.baseflow.corr <- left_join(DS.baseflow.corr, scrap1, by = "timestamp") 
+#View(DS.baseflow.corr)
+## Remove na
+DS.baseflow.corr <- na.omit(DS.baseflow.corr)
+# mutate for appropriate normality corrections
+DS.baseflow.corr <- DS.baseflow.corr %>%
+  mutate(log.weir = log(weir + 0.01),
+         log.dryout = log(dryout + 0.01))
+#View(DS.baseflow.corr)
+
+##lm
+lm100.1 <- lm(dryout ~ weir, data = DS.baseflow.corr[,])
+summary(lm100.1)
+par(mfrow=c(2,2))
+plot(lm100.1)
+
+## autocorrelation factor
+acf(lm100.1$residuals)
+
+# Rectify autocorrelation
+DS.flow100.2 <- na.omit(DS.baseflow.corr[,])
+resid_linear <- lm100.1$residuals
+DS.flow100.2[, "resid_linear"] <- resid_linear
+DS.flow20.1 <- slide(DS.flow100.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+DS.flow20.1 <- slide(DS.flow20.1, Var="resid_linear", NewVar = "lag2", slideBy = -2)
+DS.flow30.1 <- na.omit(DS.flow20.1)
+
+lm100.2 <- lm(dryout ~ weir + lag1, data = DS.flow30.1[-c(18,2242,2142),])
+summary(lm100.2)
+par(mfrow=c(2,2))
+plot(lm100.2)
+
+# Call:
+#   lm(formula = dryout ~ weir + lag1, data = DS.flow30.1[-c(18, 
+#                                                            2242, 2142), ])
+# 
+# Residuals:
+#   Min         1Q     Median         3Q        Max 
+# -0.0022525 -0.0000739  0.0000111  0.0000783  0.0033121 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)  6.124e-03  6.034e-06  1015.0   <2e-16 ***
+#   weir        -1.129e+00  3.852e-02   -29.3   <2e-16 ***
+#   lag1         9.352e-01  6.824e-03   137.0   <2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.0002614 on 2872 degrees of freedom
+# Multiple R-squared:  0.876,	Adjusted R-squared:  0.8759 
+# F-statistic: 1.014e+04 on 2 and 2872 DF,  p-value: < 2.2e-16
 
 
+## autocorrelation factor
+acf(lm100.2$residuals)
 
-## Secondary inlet diagnosis and correction
-DS.IN2.flow <- (DS.flow)%>%
-  select(timestamp,
-         in2.hobo.m_flow,
-         in2.m_flow)
-## Melt in2 flow Dataset 
-DS.IN2.flow.melt <- (DS.IN2.flow) %>%
-  melt(id = "timestamp")
-#View(DS.IN2.flow.melt)
-#plot
-ggplot(DS.IN2.flow.melt, aes(x = timestamp))+
-  geom_line(aes(y = value, colour = variable))
+#Root mean square error:
+RSS2 <- c(crossprod(lm100.2$residuals))
 
+MSE2 <- RSS2 / length(lm100.2$residuals)
+
+RMSE2 <- sqrt(MSE2)
+# View(RMSE2)
+# Returns: 0.0002612988
