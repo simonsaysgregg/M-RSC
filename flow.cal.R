@@ -51,6 +51,7 @@ corr.events <- (DS.events) %>%
   subset(start >= as.POSIXct("2018-05-25") & start <= as.POSIXct("2018-07-06"))
 #View(corr.events)
 
+###########
 ## Create a INflow dataset
 DS.inflow <- (DS.flow) %>%
   select(timestamp,
@@ -190,6 +191,7 @@ MSE <- RSS / length(lm2$residuals)
 RMSE <- sqrt(MSE)
 # View(RMSE)
 # Returns: 0.01208794
+###############
 
 ## Repeat with all events 
 ## Create a INflow dataset
@@ -214,8 +216,9 @@ DS.inflow1.m <- (DS.inflow1) %>%
 #View(DS.inflow1.m)
 ## Plot events for calibration
 ggplot(DS.inflow1.m, aes(x = timestamp))+
-  geom_point(aes(y = value, color = variable))+
-  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  geom_point(aes(y = value, color = variable, shape = variable))+
+  scale_shape_manual(values = c(16, 1), labels = c("Weir", "Dry Pond Outlet"))+
+  scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
