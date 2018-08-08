@@ -25,6 +25,8 @@ require("fBasics")
 require("pls")
 require("DataCombine")
 require("gvlma")
+require("lawstat")
+require("lmtest")
 ## Mapping tools
 require("stringi")
 require("ggmap")        # Plotting of maps same as you would with ggplot2
@@ -111,8 +113,10 @@ ggplot(DS.inflow1.m, aes(x = timestamp))+
 ## scatter plot DS.inflow
 ggplot(DS.inflow1, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
-  geom_smooth(method = lm)+
-  geom_abline(aes(intercept = 0, slope = 1))
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
 ## box plots DS.inflow
 ggplot(DS.inflow1.m)+
   geom_boxplot(aes(x = variable, y = value))
@@ -147,10 +151,9 @@ ggplot(DS.inflow1.m, aes(x = timestamp))+
 ggplot(flow.short1, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
-  sacle_line_manual(label = "Outlet = ")
-  scale_color_manual(values = c("black"))+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
 ## box plots
 ggplot(flow.short1.m)+
   geom_boxplot(aes(x = variable, y = value))
@@ -189,6 +192,10 @@ flow.short1.corr <- flow.short1.corr %>%
   mutate(log.weir = log(weir + 0.01),
          log.dryout = log(dryout + 0.01))
 #View(flow.short1.corr)
+# shapiro.test(flow.short1.corr$weir)
+# shapiro.test(flow.short1.corr$log.weir)
+# shapiro.test(flow.short1.corr$dryout)
+# shapiro.test(flow.short1.corr$log.dryout)
 
 ##lm
 lm10.2 <- lm(dryout ~ weir, data = flow.short1.corr[,])
@@ -202,21 +209,19 @@ acf(lm10.2$residuals)
 # Rectify autocorrelation
 DS.flow10.2 <- na.omit(flow.short1.corr[,])
 resid_linear <- lm10.2$residuals
-DS.flow1.1[, "resid_linear"] <- resid_linear
-DS.flow2.1 <- slide(DS.flow1.1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
-DS.flow3.1 <- na.omit(DS.flow2.1)
+DS.flow10.2[, "resid_linear"] <- resid_linear
+DS.flow20.2 <- slide(DS.flow10.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+DS.flow30.2 <- na.omit(DS.flow20.2)
 
-lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow3.1[-c(32,33,9,10),])
+lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow30.2[-c(32,33,9,10),])
 summary(lm20.1)
 par(mfrow=c(2,2))
 plot(lm20.1)
 
 ## scatter plot of final model
-ggplot(DS.flow3.1[-c(32,33,9,10),], aes(x = weir + lag1, y = dryout))+
+ggplot(DS.flow30.2[-c(32,33,9,10),], aes(x = weir + lag1, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
-  #sacle_line_manual(label = "Outlet = ")
-  #scale_color_manual(values = c("black"))+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
@@ -244,9 +249,9 @@ ggplot(DS.flow3.1[-c(32,33,9,10),], aes(x = weir + lag1, y = dryout))+
 acf(lm20.1$residuals)
 
 #Root mean square error:
-RSS1 <- c(crossprod(lm2.1$residuals))
+RSS1 <- c(crossprod(lm20.1$residuals))
 
-MSE1 <- RSS1 / length(lm2.1$residuals)
+MSE1 <- RSS1 / length(lm20.1$residuals)
 
 RMSE1 <- sqrt(MSE1)
 # View(RMSE1)
@@ -275,16 +280,18 @@ DS.baseflow.m <- (DS.baseflow) %>%
 #View(DS.baseflow.m)
 ## Plot events for calibration
 ggplot(DS.baseflow.m, aes(x = timestamp))+
-  geom_point(aes(y = value, color = variable))+
-  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  geom_point(aes(y = value, color = variable, shape = variable))+
+  scale_shape_manual(values = c(16, 1), labels = c("Weir", "Dry Pond Outlet"))+
+  scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 ## scatter plot DS.baseflow
 ggplot(DS.baseflow, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
-  geom_smooth(method = lm)+
-  geom_abline(aes(intercept = 0, slope = 1))
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 ## box plots DS.inflow
 ggplot(DS.baseflow.m)+
   geom_boxplot(aes(x = variable, y = value))
@@ -346,6 +353,13 @@ summary(lm100.2)
 par(mfrow=c(2,2))
 plot(lm100.2)
 
+## scatter plot of final model
+ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1, y = dryout))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
 # Call:
 #   lm(formula = dryout ~ weir + lag1, data = DS.flow30.1[-c(18, 
 #                                                            2242, 2142), ])
@@ -367,8 +381,11 @@ plot(lm100.2)
 # F-statistic: 1.014e+04 on 2 and 2872 DF,  p-value: < 2.2e-16
 
 
+
 ## autocorrelation factor
 acf(lm100.2$residuals)
+runs.test(lm100.2$residuals)
+dwtest(lm100.2)
 
 #Root mean square error:
 RSS2 <- c(crossprod(lm100.2$residuals))
