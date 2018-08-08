@@ -51,21 +51,16 @@ corr.events <- (DS.events) %>%
   subset(start >= as.POSIXct("2018-05-25") & start <= as.POSIXct("2018-07-06"))
 #View(corr.events)
 
-###########
+## Plot of whole dryout period#########
 ## Create a INflow dataset
 DS.inflow <- (DS.flow) %>%
   select(timestamp,
          in1.m_flow,
          dryout.m_flow)%>%
-  subset(#timestamp >= as.POSIXct("2018-05-28 02:28:00") & timestamp <= as.POSIXct("2018-05-30 06:28:00") |
-    # timestamp >= as.POSIXct("2018-05-30 14:58:00") & timestamp <= as.POSIXct("2018-05-31 11:04:00") |
-    # timestamp >= as.POSIXct("2018-06-10 20:20:00") & timestamp <= as.POSIXct("2018-06-11 14:26:00") |
-    timestamp >= as.POSIXct("2018-06-26 07:50:00") & timestamp <= as.POSIXct("2018-06-26 20:14:00") |
-      timestamp >= as.POSIXct("2018-07-05 13:26:00") & timestamp <= as.POSIXct("2018-07-06 07:56:00")
-  ) 
+  subset(timestamp >= as.POSIXct("2018-05-25 00:00:00") & timestamp <= as.POSIXct("2018-07-10 00:00:00")) 
 #View(DS.inflow)
 
-## Diagnostic Plots
+## Duration Plot: total 
 ## Melt inflow Dataset 
 DS.inflow.m <- (DS.inflow) %>%
   select(timestamp,
@@ -75,125 +70,16 @@ DS.inflow.m <- (DS.inflow) %>%
 #View(DS.inflow.m)
 ## Plot events for calibration
 ggplot(DS.inflow.m, aes(x = timestamp))+
-  geom_point(aes(y = value, color = variable))+
-  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
+  geom_line(aes(y = value, color = variable, linetype = variable))+
+  scale_linetype_manual(values = c("longdash", "dotdash"), labels = c("Weir", "Dry Pond Outlet"))+
+  scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
-## scatter plot DS.inflow
-ggplot(DS.inflow, aes(x = in1.m_flow, y = dryout.m_flow))+
-  geom_point()+
-  geom_smooth(method = lm)+
-  geom_abline(aes(intercept = 0, slope = 1))
-## box plots DS.inflow
-ggplot(DS.inflow.m)+
-  geom_boxplot(aes(x = variable, y = value))
-## Density DS.inflow
-# Weir
-ggplot(DS.inflow, aes(x = in1.m_flow))+
-  geom_density()
-# Outlet Structure
-ggplot(DS.inflow, aes(x = dryout.m_flow))+
-  geom_density()
 
-## subset flow values to remove low event flows
-flow.short <- DS.inflow %>%
-  subset(in1.m_flow >= 0.05)
-#View(flow.short)
-# melt
-flow.short.m <- flow.short %>%
-  select(timestamp,
-         in1.m_flow,
-         dryout.m_flow)%>%
-  melt(id = "timestamp")
-
-## Diagnostic Plots
-## Plot events for calibration
-ggplot(DS.inflow.m, aes(x = timestamp))+
-  geom_point(aes(y = value, color = variable))+
-  scale_shape_manual(values = c("2", "16"), labels = c("Weir", "Outlet"))+
-  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
-  labs(y = "Flow Rate (cms)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
-## scatter plot
-ggplot(flow.short, aes(x = in1.m_flow, y = dryout.m_flow))+
-  geom_point()+
-  geom_smooth(method = lm)+
-  geom_abline(aes(intercept = 0, slope = 1))
-## box plots
-ggplot(flow.short.m)+
-  geom_boxplot(aes(x = variable, y = value))
-## Density
-# Weir
-ggplot(flow.short, aes(x = in1.m_flow))+
-  geom_density()
-# Outlet Structure
-ggplot(DS.inflow, aes(x = dryout.m_flow))+
-  geom_density()
-
-## lm
-## diagnostic plots
-lm1 <- lm(dryout.m_flow ~ in1.m_flow, data = flow.short)
-summary(lm1)
-par(mfrow=c(2,2))
-plot(lm1)
-
-## normality and autocorrelation corrections
-# average values over 20-min non-rolling
-weir <- aggregate(list(flow.short$in1.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
-dryout <- aggregate(list(flow.short$dryout.m_flow), list(cut(as.POSIXlt(flow.short$timestamp), "20 mins")), FUN = mean)
-# add to new dataframe
-flow.short.corr <- data.frame(weir)
-colnames(flow.short.corr) <- c("timestamp", "weir")
-# Repeat for dryout to new dataframe
-scrap <- data.frame(dryout)
-colnames(scrap) <- c("timestamp", "dryout")
-## Join dryout data
-flow.short.corr <- left_join(flow.short.corr, scrap, by = "timestamp") 
-#View(flow.short.corr)
-## Remove na
-flow.short.corr <- na.omit(flow.short.corr)
-# mutate for appropriate normality corrections
-flow.short.corr <- flow.short.corr %>%
-  mutate(log.weir = log(weir + 0.01),
-         log.dryout = log(dryout + 0.01))
-#View(flow.short.corr)
-
-##lm
-lm1.1 <- lm(dryout ~ weir, data = flow.short.corr[,])
-summary(lm1.1)
-par(mfrow=c(2,2))
-plot(lm1.1)
-
-## autocorrelation factor
-acf(lm1.1$residuals)
-
-# Rectify autocorrelation
-DS.flow1 <- na.omit(flow.short.corr[,])
-resid_linear <- lm1.1$residuals
-DS.flow1[, "resid_linear"] <- resid_linear
-DS.flow2 <- slide(DS.flow1, Var="resid_linear", NewVar = "lag1", slideBy = -1)
-DS.flow3 <- na.omit(DS.flow2)
-
-lm2 <- lm(dryout ~ weir + lag1, data = DS.flow3[,])
-summary(lm2)
-par(mfrow=c(2,2))
-plot(lm2)
-
-## autocorrelation factor
-acf(lm2$residuals)
-
-#Root mean square error:
-RSS <- c(crossprod(lm2$residuals))
-
-MSE <- RSS / length(lm2$residuals)
-
-RMSE <- sqrt(MSE)
-# View(RMSE)
-# Returns: 0.01208794
 ###############
 
-## Repeat with all events 
+## Model development with all events 
 ## Create a INflow dataset
 DS.inflow1 <- (DS.flow) %>%
   select(timestamp,
@@ -260,8 +146,11 @@ ggplot(DS.inflow1.m, aes(x = timestamp))+
 ## scatter plot
 ggplot(flow.short1, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
-  geom_smooth(method = lm)+
-  geom_abline(aes(intercept = 0, slope = 1))
+  geom_smooth(method = lm, se = FALSE)+
+  sacle_line_manual(label = "Outlet = ")
+  scale_color_manual(values = c("black"))+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 ## box plots
 ggplot(flow.short1.m)+
   geom_boxplot(aes(x = variable, y = value))
@@ -321,6 +210,15 @@ lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow3.1[-c(32,33,9,10),])
 summary(lm20.1)
 par(mfrow=c(2,2))
 plot(lm20.1)
+
+## scatter plot of final model
+ggplot(DS.flow3.1[-c(32,33,9,10),], aes(x = weir + lag1, y = dryout))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  #sacle_line_manual(label = "Outlet = ")
+  #scale_color_manual(values = c("black"))+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # Call:
 #   lm(formula = dryout ~ weir + lag1, data = DS.flow3.1[-c(32, 33, 
