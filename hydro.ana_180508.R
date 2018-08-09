@@ -77,6 +77,34 @@ runoff.runon <- function(acc, CN, WA = 1.95) {
   Q.vol <- Q.vol * 0.0283
   return(Q.vol)
 }
+
+# direct precipitation estimation function
+runoff.dp <- function(acc, CN, WA = 0.0025) { # Practice area 0.0025 base on 10sqm 
+  # convert accumulation to inches
+  acc.in <- acc * 3.94
+  # surface storage
+  S <- (1000/CN) - 10
+  # runoff units: inches
+  Q <- ((acc.in - (0.2 * S))^2)/(acc.in + (0.8 * S))
+  # conversion to volume: cubic feet
+  Q.vol <- Q * WA * (43560 / 12)
+  # conversion to cubic meters
+  Q.vol <- Q.vol * 0.0283
+  return(Q.vol)
+}
+
+# Event flow correction
+# valid for flows >= 0.066
+evt.flow.corr <- function(in1flow, lag1, na.rm = TRUE){
+  ifelse(in1flow >= 0.066, (5.59*(in1flow) - 0.289 + 0.909 * lag1), in1flow)
+}
+
+# base flow correction
+# valid for flows <= 0.0014
+base.flow.corr <- function(in1flow, lag1){
+  ifelse(in1flow <= 0.0014, (-1.13*(in1flow) - 0.006 + 0.935 * lag1), in1flow)
+}
+
 ######################### End
 ## Read file from ./Working folder
 ## units feet
@@ -215,6 +243,8 @@ Rainsum_event_analysis <- (Rainsum) %>%
          flow.vol.perc_diff.roll = ((as.numeric(in.sum) - as.numeric(out.vol.roll)) / as.numeric(in.sum)) * 100,
          flow.vol.perc_diff = ((as.numeric(in.sum) - as.numeric(out.vol)) / as.numeric(in.sum)) * 100)
 #View(Rainsum_event_analysis)
+## Write .csv file for exporting data frames
+write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
 
 ## Summarise rainfall info
 Rainfall_event.summary <- (Rainsum[-1, ]) %>%
@@ -241,7 +271,56 @@ eventsub_1 <- RainEvents[-1]
 evt.ana.corr <- eventsub_1[event.ana.vec]
 #View(evt.ana.corr)
 
+## Create lag variable in data frame
+evt.corr <- evt.ana.corr %>%
+  map_df(~ mutate(.x, in1lag1 = lag(in1.m_flow)))
+#View(evt.corr)
 
+## Apply flow corrections
+evt.corr.1 <- evt.corr %>%
+  mutate(in1.corr = evt.flow.corr(in1.m_flow, in1lag1))
+#View(evt.corr.1)
 
-## Write .csv file for exporting data frames
-write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
+## Temp
+corted.flow.plot <- evt.corr.1 %>%
+  select(timestamp,
+         in1.m_flow,
+         in1.corr,
+         dryout.m_flow) %>%
+  melt(id = "timestamp")
+ggplot(corted.flow.plot)+
+  geom_point(aes(x = timestamp, y = value, color = variable, shape = variable))+
+  scale_color_manual(values = c("red", "blue", "black"), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
+  scale_shape_manual(values = c(0,1,2), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+## Percent diff on influent methods
+mod.eff <- (evt.corr.1) %>%
+  subset(timestamp > as.POSIXct("2018-05-25")) %>%
+  group_by(storm.index) %>%
+  summarise(perc_diffin.dry = (( sum(dryout.m_flow, na.rm = TRUE) - sum(in1.m_flow, na.rm = TRUE) / sum(dryout.m_flow, na.rm = TRUE))) * 100,
+            perc_diffmod.dry = ((sum(dryout.m_flow, na.rm = TRUE) - sum(in1.corr, na.rm = TRUE) / sum(dryout.m_flow, na.rm = TRUE) * 100)))
+#View(mod.eff)
+
+## Water Ballance Calcultaion 
+# using some equations from line 206
+hydr.ana <- (evt.corr.1) %>%
+  select(timestamp,
+         rainfall.mm,
+         in1.corr,
+         in2.hobo.m_flow,
+         out.flow,
+         storm.index) %>%
+  group_by(storm.index) %>%
+  summarise(Duration = ((max(timestamp)-min(timestamp))/3600),
+            Accumulation = sum(rainfall.mm, na.rm = TRUE),
+            in1.vol = sum(in1.corr * 120, na.rm = TRUE) * (Duration * 3600),
+            in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+            runoff.est.runon = runoff.runon(Accumulation, CN = 87),
+            direct.precip = runoff.dp(Accumulation, CN = 80),  #            ## CN base on Good quality open space on HSG D
+            out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600)) %>%
+  mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip, 
+         perc.diff =((as.numeric(insum) - as.numeric(out.vol)) / as.numeric(insum)) * 100)
+View(hydr.ana)
+
