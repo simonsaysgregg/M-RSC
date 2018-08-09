@@ -179,7 +179,7 @@ ADP.sum <- (RSC.hydro.m) %>%
 # 2.26
 ADP.26 <- RSC.hydro.m %>%
   subset(ADP.index == 15)
-View(ADP.26)
+#View(ADP.26)
 
 ## Split into list of events
 RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index) 
@@ -189,7 +189,8 @@ RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index)
 ## Calculates mean of Duration & Rainfall Accumulaiton 
 # Returns a data frame of values same length as list
 Rainsum <- RainEvents %>%
-  map_df(function(df) {summarise(df, start = min(timestamp),
+  map_df(function(df) {summarise(df, event = mean(storm.index),
+                                 start = min(timestamp),
                                  end = max(timestamp),
                                  Duration = ((max(timestamp)-min(timestamp))/3600),
                                  Accumulation = sum(rainfall.mm, na.rm = TRUE),
@@ -224,12 +225,22 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
 
 ## Determine events where correction model applies
 Rainsum.corr <- (Rainsum) %>%
-  subset(Accumulation >= 6.350 & Accumulation <= 38.608 &
-         max.intensity5 >= 13.716 & max.intensity5 <= 109.728)  %>%
-  mutate(in.sum = in1.vol + in2.hobo.vol + runoff.est.runon,
-         flow.vol.perc_diff.roll = ((as.numeric(in.sum) - as.numeric(out.vol.roll)) / as.numeric(in.sum)) * 100,
-         inflow.vol.perc_diff = ((as.numeric(dryout.vol) - as.numeric(in1.vol)) / as.numeric(dryout.vol)) * 100)
+  subset(start > as.POSIXct("2017-09-14") & 
+         Accumulation >= 6.350 & Accumulation <= 38.608 &
+         max.intensity5 >= 22.86 & max.intensity5 <= 137.16)  
 #View(Rainsum.corr)
+
+## Create vector of event numbers that apply for correction
+event.ana.vec <- Rainsum.corr$event
+#View(event.ana.vec)
+
+## Subset events from list matching event,vec
+rain.evt <- RainEvents[-1]
+#View(rain.evt)
+evt.ana.corr <- rain.evt[rain.evt == "event.ana.vec"] 
+#View(evt.ana.corr)
+
+
 
 ## Write .csv file for exporting data frames
 write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
