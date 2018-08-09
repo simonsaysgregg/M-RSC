@@ -303,14 +303,53 @@ mod.eff <- (evt.corr.1) %>%
             perc_diffmod.dry = ((sum(dryout.m_flow, na.rm = TRUE) - sum(in1.corr, na.rm = TRUE) / sum(dryout.m_flow, na.rm = TRUE) * 100)))
 #View(mod.eff)
 
+## Read ET data sets
+## Read file from ./Working folder
+## units feet
+ETCRONOS <- read.csv("./Working/CRONOSresults_KRDU.csv", skip = 14)
+colnames(ETCRONOS) <- c("timestamp",
+                        "OMIT",
+                        "Daily.et.in")
+ETCRONOS <- ETCRONOS %>%
+                select(timestamp, 
+                       Daily.et.in)
+# View(ETCRONOS)
+## Reformat dates
+ETCRONOS$timestamp <- mdy(ETCRONOS$timestamp, tz = "GMT")
+# View(ETCRONOS)
+ET_KRDU <- read.csv("./Working/ET_KRDU.csv", skip = 14)
+colnames(ET_KRDU) <- c("timestamp",
+                        "OMIT",
+                       "reference crop ET",
+                        "Daily.et.in")
+ET_KRDU <- ET_KRDU %>% 
+                select(timestamp, 
+                       Daily.et.in)
+## Reformat dates
+ET_KRDU$timestamp <- mdy(ET_KRDU$timestamp, tz = "GMT")
+# View(ET_KRDU)
+## Bind datasets
+ET <- rbind(ETCRONOS,ET_KRDU)
+#View(ET)
+## Join ET data to hydr.ana
+evt.corr.2 <- left_join(evt.corr.1, ET, by = "timestamp") 
+## View(evt.corr.2)
+## Distribut dily values across the day
+evt.corr.2 <- evt.corr.2 %>%
+  mutate(ET.mm = (Daily.et.in * 25.4) / 10368000,
+         ET = na.locf(ET.mm, na.rm = FALSE))
+# View(evt.corr.2)
+
+
 ## Water Ballance Calcultaion 
 # using some equations from line 206
-hydr.ana <- (evt.corr.1) %>%
+hydr.ana <- (evt.corr.2) %>%
   select(timestamp,
          rainfall.mm,
          in1.corr,
          in2.hobo.m_flow,
          out.flow,
+         ET,
          storm.index) %>%
   group_by(storm.index) %>%
   summarise(Duration = ((max(timestamp)-min(timestamp))/3600),
@@ -318,9 +357,11 @@ hydr.ana <- (evt.corr.1) %>%
             in1.vol = sum(in1.corr * 120, na.rm = TRUE) * (Duration * 3600),
             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
+            ET = sum(ET, na.rm = TRUE),
             direct.precip = runoff.dp(Accumulation, CN = 80),  #            ## CN base on Good quality open space on HSG D
             out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600)) %>%
-  mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip, 
-         perc.diff =((as.numeric(insum) - as.numeric(out.vol)) / as.numeric(insum)) * 100)
+  mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip - ET, 
+         perc.diff =((as.numeric(insum) - as.numeric(out.vol)) / as.numeric(insum)) * 100,
+         frac.inflow = as.numeric(insum) / as.numeric(out.vol))
 View(hydr.ana)
 
