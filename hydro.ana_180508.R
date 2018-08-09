@@ -24,6 +24,7 @@ require("purrr")
 require("tidyr")
 require("fBasics")
 require("pls")
+require("magrittr")
 ## Mapping tools
 require("stringi")
 require("ggmap")        # Plotting of maps same as you would with ggplot2
@@ -234,10 +235,8 @@ Rainsum.corr <- (Rainsum) %>%
 event.ana.vec <- Rainsum.corr$event
 #View(event.ana.vec)
 
-## Subset events from list matching event,vec
-rain.evt <- RainEvents[-1]
-#View(rain.evt)
-evt.ana.corr <- rain.evt[rain.evt == "event.ana.vec"] 
+## Subset events from list matching event vector
+evt.ana.corr <- RainEvents[event.ana.vec]
 #View(evt.ana.corr)
 
 
