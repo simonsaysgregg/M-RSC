@@ -50,7 +50,7 @@ DS.events$start <- ymd_hms(DS.events$start)
 ## Subsets events for use in creation of correction
 # Event summary from hydro.ana_
 corr.events <- (DS.events) %>%
-  subset(start >= as.POSIXct("2018-05-25") & start <= as.POSIXct("2018-07-06"))
+  subset(start >= as.POSIXct("2018-05-25") & start <= as.POSIXct("2018-07-09"))
 #View(corr.events)
 
 ## Plot of whole dryout period#########
