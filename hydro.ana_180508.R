@@ -228,7 +228,7 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
 Rainsum.corr <- (Rainsum) %>%
   subset(start > as.POSIXct("2017-09-14") & 
          Accumulation >= 6.350 & Accumulation <= 38.608 &
-         max.intensity5 >= 22.86 & max.intensity5 <= 137.16)  
+         max.intensity5 >= 13.71 & max.intensity5 <= 109.73)  
 #View(Rainsum.corr)
 
 ## Create vector of event numbers that apply for correction
@@ -236,7 +236,9 @@ event.ana.vec <- Rainsum.corr$event
 #View(event.ana.vec)
 
 ## Subset events from list matching event vector
-evt.ana.corr <- RainEvents[event.ana.vec]
+# Matches event observation #; need to remove event 0 == observation 1
+eventsub_1 <- RainEvents[-1] 
+evt.ana.corr <- eventsub_1[event.ana.vec]
 #View(evt.ana.corr)
 
 
