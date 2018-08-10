@@ -354,7 +354,7 @@ hydr.ana <- (evt.corr.2) %>%
          ET,
          storm.index) %>%
   group_by(storm.index) %>%
-  summarise(Duration = ((max(timestamp)-min(timestamp))/3600),
+  summarise(Duration = ((max(timestamp)-min(timestamp))),
             Accumulation = sum(rainfall.mm, na.rm = TRUE),
             in1.vol = sum(in1.corr * 120, na.rm = TRUE) * (Duration * 3600),
             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
@@ -367,3 +367,18 @@ hydr.ana <- (evt.corr.2) %>%
          frac.inflow = as.numeric(insum) / as.numeric(out.vol))
 View(hydr.ana)
 
+## Bar chart of event data
+hydr.ana.bar <- hydr.ana %>%
+  select(storm.index,
+         in1.vol,
+         in2.hobo.vol,
+         runoff.est.runon,
+         ET,
+         direct.precip,
+         out.vol) %>%
+  melt(id = "storm.index")
+
+# bar chart
+ggplot(data = hydr.ana.bar, aes(x = storm.index, y = value, color = variable)) +
+  geom_col(aes(position = "fill"))+
+  scale_x_discrete()+
