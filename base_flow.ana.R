@@ -109,7 +109,7 @@ infil.ds <- DryEvents %>%
   select(timestamp,
         well.cm,
         ADP.index) %>%
-  subset(ADP.index != 0) 
+  subset(ADP.index != 0)  
 # View(infil.ds)
 
 ## Average well deeps over interval
@@ -120,29 +120,105 @@ infil.pros <- infil.ds %>%
 # create counting index for interval generation
 infil.pros1 <- infil.pros %>%
                     mutate(timestamp = ymd_hms(timestamp),
-                           hour = floor_date(timestamp, 'hour')) %>%
-                    group_by(ADP.index, hour) %>%
+                           day = floor_date(timestamp, 'day')) %>%
+                    group_by(ADP.index, day) %>%
                   summarise(well.cm = mean(well.cm))
 # View(infil.pros1)
-# Add count hour
+# Add count day
 infil.pros2 <- infil.pros1 %>%
   group_by(ADP.index) %>%
-  mutate(start = min(hour),
-         durat = (hour - start) / 86400)
+  mutate(start = min(day),
+         end = max(day),
+         total = (end - start)  / 86400, # conversion to days
+         durat = (day - start) / 86400) %>%
+  subset(as.numeric(total) >= 1)
 # View(infil.pros2)
 
 ## Infiltraiton estimation
 infil.est <- infil.pros2 %>%
   select(well.cm,
          ADP.index,
-         durat)
+         durat) %>%
+  subset(ADP.index != 25) %>%
+  subset(ADP.index != 41) %>%
+  subset(ADP.index != 91) %>%
+  mutate(delta.stage = lag(well.cm) - well.cm) %>%
+  subset(!is.na(delta.stage)) 
+# ## count
+# countess <- seq_len(181)
+# infil.est[, "Position"] <- countess
 # View(infil.est)
 
-## Plot
-ggplot(infil.est)+
-  geom_point(aes(x = as.numeric(durat), y = well.cm, color = ADP.index))+
-  scale_color_continuous(aes(value = "red"))+
-  labs(y = "Well Stage (cm)", x = "ADP (hrs)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+## Plot infil.est
+ggplot(infil.est, aes(x = well.cm, y = delta.stage))+
+  geom_point(aes(x = well.cm, y = delta.stage))+
+  #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
+  labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+  geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
 
 
+# ## Seasonal
+# ## subset seasons
+# # 26-68-- Autum-Winter
+# # 68-93-- Spring-Summer
+# autwin <- infil.est %>%
+#   subset(ADP.index <= 74)
+# sprsum <- infil.est %>%
+#   subset(ADP.index >= 75)
+# ## Plot Autum-Winter
+# ggplot(autwin)+
+#   geom_point(aes(x = well.cm, y = delta.stage, color = "black"))+
+#   #geom_point(data = infil.est[c(151,93,89,88,95,101), ], aes(color = "red"))+
+#   #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
+#   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
+#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+#   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+# ## Plot Sprin- Summer
+# ggplot(sprsum)+
+#   geom_point(aes(x = well.cm, y = delta.stage, color = "black"))+
+#   #geom_point(data = infil.est[c(151,93,89,88,95,101), ], aes(color = "red"))+
+#   #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
+#   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
+#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+#   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+
+## Linear model development
+##lm
+lmbf <- lm(delta.stage ~ well.cm , data = infil.est[,])
+summary(lmbf)
+par(mfrow=c(2,2))
+plot(lmbf)
+# normality
+#shapiro.test(infil.est1$log.stage)
+
+# ## mutate for appropriate normality corrections
+# infil.est1 <- infil.est %>%
+#   mutate(log.stage = log(well.cm + 0.01))
+# 
+# ##lm
+# lmbf1 <- lm(delta.stage ~ well.cm, data = autwin[,])
+# summary(lmbf1)
+# par(mfrow=c(2,2))
+# plot(lmbf1)
+
+# Autocorrelation
+#acf(lmbf$residuals)
+runs.test(lmbf$residuals)
+dwtest(lmbf)
+
+
+#### Not finished
+# # Rectify autocorrelation
+# infilltrate <- na.omit(infil.est[,])
+# resid_linear <- lmbf$residuals
+# infilltrate[, "resid_linear"] <- resid_linear
+# infilltrate <- na.omit(infilltrate[,])
+# infilltrate.1 <- slide(infilltrate, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+# infilltrate.2 <- na.omit(infilltrate.1)
+# 
+# lmbf.auto <- lm(delta.stage ~ well.cm + lag1, data = infilltrate.2[,])
+# summary(lmbf.auto)
+# par(mfrow=c(2,2))
+# plot(lmbf.auto)
