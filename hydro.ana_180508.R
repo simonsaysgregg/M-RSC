@@ -210,6 +210,7 @@ ADP.26 <- RSC.hydro.m %>%
   subset(ADP.index == 15)
 #View(ADP.26)
 
+
 ## Split into list of events
 RainEvents <- split(RSC.hydro.m, RSC.hydro.m$storm.index) 
 # Returns a list of events 
@@ -339,6 +340,7 @@ evt.corr.2 <- evt.corr.2 %>%
   mutate(ET.mm = (Daily.et.in * 25.4) / 10368000,
          ET = na.locf(ET.mm, na.rm = FALSE))
 # View(evt.corr.2)
+
 
 
 ## Water Ballance Calcultaion 
