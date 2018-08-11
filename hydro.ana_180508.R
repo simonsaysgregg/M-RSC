@@ -79,18 +79,14 @@ runoff.runon <- function(acc, CN, WA = 1.95) {
 }
 
 # direct precipitation estimation function
-runoff.dp <- function(acc, CN, WA = 0.0025) { # Practice area 0.0025 base on 10sqm 
-  # convert accumulation to inches
-  acc.in <- acc * 3.94
-  # surface storage
-  S <- (1000/CN) - 10
-  # runoff units: inches
-  Q <- ((acc.in - (0.2 * S))^2)/(acc.in + (0.8 * S))
-  # conversion to volume: cubic feet
-  Q.vol <- Q * WA * (43560 / 12)
-  # conversion to cubic meters
-  Q.vol <- Q.vol * 0.0283
-  return(Q.vol)
+runoff.dp <- function(acc, WA = 0.0025) { # Practice area 0.0025 base on 10sqm 
+  # Accumulation conversion to meters
+  acc <- acc / 1000
+  # Conversion: acres to square meters
+  WA <- WA * (43560 / (3.2808^2))
+  # Multiply
+  Q.vol <- acc * WA
+    return(Q.vol)
 }
 
 # Event flow correction
@@ -245,7 +241,7 @@ Rainsum_event_analysis <- (Rainsum) %>%
          flow.vol.perc_diff = ((as.numeric(in.sum) - as.numeric(out.vol)) / as.numeric(in.sum)) * 100)
 #View(Rainsum_event_analysis)
 ## Write .csv file for exporting data frames
-write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
+# write.csv(Rainsum_event_analysis, "./Working/Rainsum_event_analysis.csv")
 
 ## Summarise rainfall info
 Rainfall_event.summary <- (Rainsum[-1, ]) %>%
@@ -361,29 +357,26 @@ hydr.ana <- (evt.corr.2) %>%
             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
             ET = sum(ET, na.rm = TRUE),
-            direct.precip = runoff.dp(Accumulation, CN = 80),  #            ## CN base on Good quality open space on HSG D
+            direct.precip = runoff.dp(Accumulation),  
             out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600)) %>%
-  mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip - ET, 
-         perc.diff =((as.numeric(insum) - as.numeric(out.vol)) / as.numeric(insum)) * 100,
-         frac.inflow = as.numeric(insum) / as.numeric(out.vol))
+  mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip,
+         frac.in1 = in1.vol / as.numeric(insum),
+         frac.in2 = in2.hobo.vol / as.numeric(insum),
+         frac.runon = runoff.est.runon / as.numeric(insum),
+         frac.directp = direct.precip / as.numeric(insum),
+         frac.out = out.vol / as.numeric(insum),
+         frac.ET = ET / as.numeric(insum),
+         frac.delta = 1 - (frac.in1 + frac.in2 + frac.runon + frac.directp - frac.out - frac.ET),
+         Start.day = floor_date(Start, unit = "days"))
 #View(hydr.ana)
 
 ## Bar chart of event data
 hydr.ana.bar <- hydr.ana %>%
   subset(storm.index != 26) %>%
-  select(Start,
-         in1.vol,
-         in2.hobo.vol,
-         runoff.est.runon,
-         ET,
-         direct.precip,
-         out.vol) 
-## Format date better for ploting
-# Format date time
-hydr.ana.bar$Start <- as.POSIXct(format(hydr.ana.bar$Start, format = "%Y-%m-%d %HH:%MM:%SS"), format = "%m-%d")
-hydr.ana.bar.m <- hydr.ana.bar %>%
-  melt(id = "Start")
+  select(starts_with("frac."),
+         Start.day) %>%
+  melt(id = "Start.day")
 # View(hydr.ana.bar)
 # bar chart
-ggplot(data = hydr.ana.bar.m, aes(x = as.character(Start), y = value / 1000, color = variable)) +
-  geom_col()
+ggplot(data = hydr.ana.bar, aes(x = as.character(Start.day), y = value, color = variable)) +
+  geom_col(aes())
