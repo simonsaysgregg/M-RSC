@@ -364,19 +364,18 @@ hydr.ana <- (evt.corr.2) %>%
          frac.in2 = in2.hobo.vol / as.numeric(insum),
          frac.runon = runoff.est.runon / as.numeric(insum),
          frac.directp = direct.precip / as.numeric(insum),
-         frac.out = out.vol / as.numeric(insum),
-         frac.ET = ET / as.numeric(insum),
-         frac.delta = 1 - (frac.in1 + frac.in2 + frac.runon + frac.directp - frac.out - frac.ET),
-         Start.day = floor_date(Start, unit = "days"))
+         frac.out = - (out.vol / as.numeric(insum)),
+         frac.ET = - (ET / as.numeric(insum)),
+         frac.delta = (frac.in1 + frac.in2 + frac.runon + frac.directp + frac.out + frac.ET) - 1)
 #View(hydr.ana)
 
 ## Bar chart of event data
 hydr.ana.bar <- hydr.ana %>%
   subset(storm.index != 26) %>%
   select(starts_with("frac."),
-         Start.day) %>%
-  melt(id = "Start.day")
+         Start) %>%
+  melt(id = "Start")
 # View(hydr.ana.bar)
 # bar chart
-ggplot(data = hydr.ana.bar, aes(x = as.character(Start.day), y = value, color = variable)) +
-  geom_col(aes())
+ggplot(data = hydr.ana.bar, aes(x = as.character(Start), y = value, fill = variable)) +
+  geom_col()
