@@ -374,8 +374,16 @@ hydr.ana <- (evt.corr.2) %>%
 
 ## Bar chart of event data
 hydr.ana.bar <- hydr.ana %>%
-  #subset(storm.index != 26) %>%
-  #subset(storm.index != 76) %>%
+  subset(storm.index == 23 | 
+           storm.index == 32 | 
+           storm.index == 42 | 
+           storm.index == 46 | 
+           storm.index == 76 | 
+           storm.index == 78 | 
+           storm.index == 80 | 
+           storm.index == 86 | 
+           storm.index == 89 | 
+           storm.index == 91) %>%
   select(starts_with("frac."),
          storm.index) %>%
   melt(id = "storm.index")
