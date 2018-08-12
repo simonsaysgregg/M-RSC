@@ -331,7 +331,7 @@ ET <- rbind(ETCRONOS,ET_KRDU)
 ## Join ET data to hydr.ana
 evt.corr.2 <- left_join(evt.corr.1, ET, by = "timestamp") 
 ## View(evt.corr.2)
-## Distribut dily values across the day
+## Distribut daily values across the day
 evt.corr.2 <- evt.corr.2 %>%
   mutate(ET.mm = (Daily.et.in * 25.4) / 10368000,
          ET = na.locf(ET.mm, na.rm = FALSE))
@@ -358,7 +358,8 @@ hydr.ana <- (evt.corr.2) %>%
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
             ET = sum(ET, na.rm = TRUE),
             direct.precip = runoff.dp(Accumulation),  
-            out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600)) %>%
+            out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600),
+            exfil = 0.0163 * Duration) %>%
   mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip,
          frac.in1 = in1.vol / as.numeric(insum),
          frac.in2 = in2.hobo.vol / as.numeric(insum),
@@ -366,16 +367,134 @@ hydr.ana <- (evt.corr.2) %>%
          frac.directp = direct.precip / as.numeric(insum),
          frac.out = - (out.vol / as.numeric(insum)),
          frac.ET = - (ET / as.numeric(insum)),
-         frac.delta = (frac.in1 + frac.in2 + frac.runon + frac.directp + frac.out + frac.ET) - 1)
+         frac.exfil = - (exfil / as.numeric(insum)),
+         frac.delta = - (frac.out + frac.ET + frac.exfil) - 1
+         )
 #View(hydr.ana)
 
 ## Bar chart of event data
 hydr.ana.bar <- hydr.ana %>%
-  subset(storm.index != 26) %>%
+  #subset(storm.index != 26) %>%
+  #subset(storm.index != 76) %>%
   select(starts_with("frac."),
-         Start) %>%
-  melt(id = "Start")
+         storm.index) %>%
+  melt(id = "storm.index")
 # View(hydr.ana.bar)
 # bar chart
-ggplot(data = hydr.ana.bar, aes(x = as.character(Start), y = value, fill = variable)) +
-  geom_col()
+ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill = variable)) +
+  geom_col()+
+  scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "Outflow", "ET", "Exfiltration", "Storage"))+
+  labs(y = "Components as Fraction of Total Inflow", x = "Event")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+## Volume reduction metric
+# subset events of interest
+evt.int <- c(23,32,42,46,76,78,80,86,89,91)
+evt.VR <- hydr.ana %>%
+  subset(storm.index == 23 | 
+           storm.index == 32 | 
+           storm.index == 42 | 
+           storm.index == 46 | 
+           storm.index == 76 | 
+           storm.index == 78 | 
+           storm.index == 80 | 
+           storm.index == 86 | 
+           storm.index == 89 | 
+           storm.index == 91) %>%
+  select(storm.index,
+         insum,
+         out.vol) %>%
+  mutate(VR = (insum - out.vol) / as.numeric(insum))
+#View(evt.VR)
+# median(as.numeric(evt.VR$VR))
+# 0.828437
+
+## Normality and similarity btw influent
+in.sig <- hydr.ana %>%
+  subset(storm.index == 23 | 
+           storm.index == 32 | 
+           storm.index == 42 | 
+           storm.index == 46 | 
+           storm.index == 76 | 
+           storm.index == 78 | 
+           storm.index == 80 | 
+           storm.index == 86 | 
+           storm.index == 89 | 
+           storm.index == 91) %>%
+  select(in1.vol,
+         in2.hobo.vol)
+
+## Normality tes of inflow volumes
+#shapiro.test(as.numeric(in.sig$in1.vol))
+# Shapiro-Wilk normality test
+# 
+# data:  as.numeric(in.sig$in1.vol)
+# W = 0.86832, p-value = 0.09556
+#shapiro.test(as.numeric(in.sig$in2.hobo.vol))
+# Shapiro-Wilk normality test
+# 
+# data:  as.numeric(in.sig$in2.hobo.vol)
+# W = 0.80414, p-value = 0.01628
+
+## significant difference between inflow volumes
+# wilcox.test(as.numeric(in.sig$in1.vol), as.numeric(in.sig$in2.hobo.vol), paired = TRUE)
+# Wilcoxon signed rank test
+# 
+# data:  as.numeric(in.sig$in1.vol) and as.numeric(in.sig$in2.hobo.vol)
+# V = 50, p-value = 0.01953
+# alternative hypothesis: true location shift is not equal to 0
+
+## Peak Flow Reduction 
+# same subset as previous
+evt.PR <- evt.corr.2 %>% 
+  subset(storm.index == 23 | 
+           storm.index == 32 | 
+           storm.index == 42 | 
+           storm.index == 46 | 
+           storm.index == 76 | 
+           storm.index == 78 | 
+           storm.index == 80 | 
+           storm.index == 86 | 
+           storm.index == 89 | 
+           storm.index == 91) %>%
+  select(storm.index,
+         in1.m_flow,
+         in2.hobo.m_flow,
+         out.flow) %>%
+  group_by(storm.index) %>%
+  summarise(in1p = max(in1.m_flow, na.rm = TRUE),
+         in2p = max(in2.hobo.m_flow, na.rm = TRUE),
+         outp = max(out.flow, na.rm = TRUE))
+# View(evt.PR)
+
+## Grab frac of inflow volumes
+in.frac <- hydr.ana %>%
+  subset(storm.index == 23 | 
+           storm.index == 32 | 
+           storm.index == 42 | 
+           storm.index == 46 | 
+           storm.index == 76 | 
+           storm.index == 78 | 
+           storm.index == 80 | 
+           storm.index == 86 | 
+           storm.index == 89 | 
+           storm.index == 91) %>%
+  select(frac.in1,
+         frac.in2,
+         insum,
+         storm.index)
+
+## Join datasets
+evt.PR <- left_join(evt.PR, in.frac, by = "storm.index")
+
+## Calculate inlet Peak Flow
+# composited (weighted average method)
+evt.PR <- evt.PR %>%
+  group_by(storm.index) %>%
+  mutate(in.peak = (in1p * frac.in1) + (in2p * frac.in2),
+         PR = ((in.peak - outp) / as.numeric(in.peak)) * 100,
+         in.med = median(c(in1p, in2p)),
+         PR.med = ((in.med - outp) / as.numeric(in.med) * 100))
+# View(evt.PR)
+# median(as.numeric(evt.PR$PR))
+# -192.4113
