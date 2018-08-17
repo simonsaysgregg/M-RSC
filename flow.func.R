@@ -244,19 +244,17 @@ DS.flow <- (DS.hydro.metric) %>%
 # experimental: to determine method of velocity processing: see beyond
 ############ 
 ## Create a flow dataset for viewing
-# DS.flow.tot <- (DS.hydro.metric) %>%
-#   select(timestamp, 
-#          in1.m_flow,
-#          in2.hobo.m_flow,
-#          out.flow.roll.ASABE)
+DS.flow.tot <- (DS.hydro.metric) %>%
+  select(timestamp,
+        out.velo)
 # ## Melt inflow Dataset 
-# DS.flow.tot <- (DS.flow.tot) %>%
-#   melt(id = "timestamp")
+DS.flow.tot <- (DS.flow.tot) %>%
+  melt(id = "timestamp")
 # #View(DS.inflow)
 # ## Plot inFlow
-# ggplot(DS.flow.tot, aes(x = timestamp))+
-#   geom_line(aes(y = value, colour = variable))
-# 
+ggplot(DS.flow.tot, aes(x = timestamp))+
+  geom_line(aes(y = value))
+
 # DS.outflow <- (DS.hydro.metric) %>%
 #   select(timestamp,
 #          out.flow.roll.ASABE) 
