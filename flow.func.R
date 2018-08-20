@@ -253,7 +253,11 @@ DS.flow.tot <- (DS.flow.tot) %>%
 # #View(DS.inflow)
 # ## Plot inFlow
 ggplot(DS.flow.tot, aes(x = timestamp))+
-  geom_line(aes(y = value))
+  geom_rect(aes(xmin = as.POSIXct("2017/07/12"), xmax = as.POSIXct("2018/07/09"), ymin = 1.5, ymax = 6.1, fill = "\u00B1 2%"))+
+  geom_rect(aes(xmin = as.POSIXct("2017/07/12"), xmax = as.POSIXct("2018/07/09"), ymin = -1.5, ymax = 1.5, fill = "\u00B1 0.03 m/s"))+
+  geom_line(aes(y = value))+
+  labs(y = "Flow Velocity (m/s)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # DS.outflow <- (DS.hydro.metric) %>%
 #   select(timestamp,
