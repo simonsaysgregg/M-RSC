@@ -506,3 +506,53 @@ evt.PR <- evt.PR %>%
 # View(evt.PR)
 # median(as.numeric(evt.PR$PR))
 # -192.4113
+
+## Baseflow corections and analysis
+# Determine events where correction model applies
+base.corr <- (RSC.hydro.m) %>%
+  subset(timestamp >= as.POSIXct("2017-09-14") & 
+           ADP.index > 0 & in1.m_flow <= 0.0014) %>%
+  select(timestamp,
+         ADP.index,
+         in1.m_flow,
+         in2.hobo.m_flow,
+         out.flow)
+#View(base.corr)
+
+## Create lag variable in data frame
+base.corr <- base.corr %>%
+  mutate(in1lag1 = lag(in1.m_flow))
+#View(base.corr)
+
+## Apply baseflow corrections
+base.corr.1 <- base.corr %>%
+  mutate(in1.base.corr = base.flow.corr(in1.m_flow, in1lag1))
+#View(base.corr.1)
+
+## select original values for understanding
+scrap2 <- (RSC.hydro.m) %>%
+  subset(timestamp >= as.POSIXct("2017-09-14") & 
+           ADP.index > 0) %>%
+  select(timestamp,
+         in1.m_flow)
+# Rename columns
+colnames(scrap2) <- c("timestamp", "in1.m_flow.OG")
+
+## Temp
+corted.baseflow.plot <- base.corr.1 %>%
+  select(timestamp,
+         in1.base.corr,
+         in2.hobo.m_flow)
+# join
+corted.baseflow.plot.1 <- left_join(corted.baseflow.plot, scrap2, by = "timestamp")
+# melt
+corted.baseflow.plot.m <- corted.baseflow.plot.1 %>%
+  melt(id = "timestamp")
+
+# plot
+ggplot(corted.baseflow.plot.m)+
+  geom_point(aes(x = timestamp, y = value, color = variable, shape = variable))+
+  scale_color_manual(values = c("red", "blue", "black", "green"), labels = c("Corrected In1 Weir", "IN2 Weir", "IN1 Weir"))+
+  scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN2 Weir", "IN1 Weir"))+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
