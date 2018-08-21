@@ -519,6 +519,18 @@ base.corr <- (RSC.hydro.m) %>%
          out.flow)
 #View(base.corr)
 
+## ADP event sum
+base.1 <- base.corr %>%
+  group_by(ADP.index) %>%
+  summarise(in.vol = sum(in1.m_flow) * 120)
+## inflow ouflow
+base.bal <- base.corr %>%
+  select(timestamp,
+         in1.m_flow,
+         in2.hobo.m_flow,
+         out.flow) %>%
+  melt(id = "timestamp")
+
 ## Create lag variable in data frame
 base.corr <- base.corr %>%
   mutate(in1lag1 = lag(in1.m_flow))
@@ -541,8 +553,7 @@ colnames(scrap2) <- c("timestamp", "in1.m_flow.OG")
 ## Temp
 corted.baseflow.plot <- base.corr.1 %>%
   select(timestamp,
-         in1.base.corr,
-         in2.hobo.m_flow)
+         in1.base.corr)
 # join
 corted.baseflow.plot.1 <- left_join(corted.baseflow.plot, scrap2, by = "timestamp")
 # melt
@@ -552,7 +563,15 @@ corted.baseflow.plot.m <- corted.baseflow.plot.1 %>%
 # plot
 ggplot(corted.baseflow.plot.m)+
   geom_point(aes(x = timestamp, y = value, color = variable, shape = variable))+
-  scale_color_manual(values = c("red", "blue", "black", "green"), labels = c("Corrected In1 Weir", "IN2 Weir", "IN1 Weir"))+
-  scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN2 Weir", "IN1 Weir"))+
+  scale_color_manual(values = c("red", "black"), labels = c("Corrected In1 Weir", "IN1 Weir"))+
+  scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN1 Weir"))+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+
+ggplot(base.bal)+
+  geom_point(aes(x = timestamp, y = value, color = variable, shape = variable))+
+ #scale_color_manual(values = c("red", "black"), labels = c("Corrected In1 Weir", "IN1 Weir"))+
+  #scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN1 Weir"))+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
