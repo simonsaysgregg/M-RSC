@@ -355,7 +355,7 @@ plot(lm100.2)
 
 
 ## scatter plot of final model
-ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1, y = dryout))+
+ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1 , y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
@@ -381,7 +381,7 @@ ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1, y = dryout))+
 # Multiple R-squared:  0.876,	Adjusted R-squared:  0.8759 
 # F-statistic: 1.014e+04 on 2 and 2872 DF,  p-value: < 2.2e-16
 
-
+plot(dryout ~ weir + lag1, data = DS.flow30.1[-c(18,2242,2142),])
 
 ## autocorrelation factor
 acf(lm100.2$residuals)
