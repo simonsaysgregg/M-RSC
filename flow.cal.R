@@ -353,6 +353,7 @@ summary(lm100.2)
 par(mfrow=c(2,2))
 plot(lm100.2)
 
+
 ## scatter plot of final model
 ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1, y = dryout))+
   geom_point()+
