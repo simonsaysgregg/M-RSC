@@ -511,7 +511,7 @@ evt.PR <- evt.PR %>%
 # Determine events where correction model applies
 base.corr <- (RSC.hydro.m) %>%
   subset(timestamp >= as.POSIXct("2017-09-14") & 
-           ADP.index > 0 & in1.m_flow <= 0.0014) %>%
+           ADP.index > 0 ) %>%
   select(timestamp,
          ADP.index,
          in1.m_flow,
@@ -522,7 +522,12 @@ base.corr <- (RSC.hydro.m) %>%
 ## ADP event sum
 base.1 <- base.corr %>%
   group_by(ADP.index) %>%
-  summarise(in.vol = sum(in1.m_flow) * 120)
+  summarise(duration = difftime(max(timestamp), min(timestamp), units = "days"),
+         in.vol = sum((in1.m_flow + in2.hobo.m_flow) * 120, na.rm = TRUE) * (duration * 3600),
+         out.vol = sum(out.flow * 120, na.rm = TRUE) * (duration * 3600)) %>%
+  mutate(perc_diff= ((in.vol - out.vol) / as.numeric(in.vol)) * 100)
+# View(base.1)
+
 ## inflow ouflow
 base.bal <- base.corr %>%
   select(timestamp,
