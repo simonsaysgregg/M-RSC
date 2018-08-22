@@ -361,6 +361,7 @@ ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1 , y = dryout))+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+
 # Call:
 #   lm(formula = dryout ~ weir + lag1, data = DS.flow30.1[-c(18, 
 #                                                            2242, 2142), ])
@@ -395,3 +396,19 @@ MSE2 <- RSS2 / length(lm100.2$residuals)
 RMSE2 <- sqrt(MSE2)
 # View(RMSE2)
 # Returns: 0.0002612988
+
+## remove negative
+DS.noneg <- DS.flow30.1 %>%
+  subset(lag1 >= 0)
+
+## scatter plot without negative
+ggplot(DS.noneg[,], aes(x = weir + lag1 , y = dryout))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+lm100.3 <- lm(dryout ~ weir + lag1, data = DS.noneg[,])
+summary(lm100.3)
+par(mfrow=c(2,2))
+plot(lm100.3)
