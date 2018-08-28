@@ -131,7 +131,7 @@ infil.pros2 <- infil.pros1 %>%
          end = max(day),
          total = (end - start)  / 86400, # conversion to days
          durat = (day - start) / 86400) %>%
-  subset(as.numeric(total) >= 1)
+  subset(as.numeric(total) >= 2)
 # View(infil.pros2)
 
 ## Infiltraiton estimation
@@ -144,81 +144,103 @@ infil.est <- infil.pros2 %>%
   subset(ADP.index != 91) %>%
   mutate(delta.stage = lag(well.cm) - well.cm) %>%
   subset(!is.na(delta.stage)) 
-# ## count
-# countess <- seq_len(181)
-# infil.est[, "Position"] <- countess
 # View(infil.est)
 
 
 ## Plot infil.est
 ggplot(infil.est, aes(x = well.cm, y = delta.stage))+
   geom_point(aes(x = well.cm, y = delta.stage))+
-  #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
 
 
-# ## Seasonal
-# ## subset seasons
-# # 26-68-- Autum-Winter
-# # 68-93-- Spring-Summer
-# autwin <- infil.est %>%
-#   subset(ADP.index <= 74)
-# sprsum <- infil.est %>%
-#   subset(ADP.index >= 75)
-# ## Plot Autum-Winter
-# ggplot(autwin)+
-#   geom_point(aes(x = well.cm, y = delta.stage, color = "black"))+
-#   #geom_point(data = infil.est[c(151,93,89,88,95,101), ], aes(color = "red"))+
-#   #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
-#   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
-#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
-#   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
-# ## Plot Sprin- Summer
-# ggplot(sprsum)+
-#   geom_point(aes(x = well.cm, y = delta.stage, color = "black"))+
-#   #geom_point(data = infil.est[c(151,93,89,88,95,101), ], aes(color = "red"))+
-#   #geom_text(aes(label = ifelse(delta.stage > 2,as.character(Position),'')),hjust=0,vjust=0)+
-#   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
-#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
-#   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+## Seasonal
+## subset seasons
+# 26-68-- Autum-Winter
+# 68-93-- Spring-Summer
+autwin <- infil.est %>%
+  subset(ADP.index <= 74)
+sprsum <- infil.est %>%
+  subset(ADP.index >= 75)
+## Plot Autum-Winter
+ggplot(autwin)+
+  geom_point(aes(x = well.cm, y = delta.stage))+
+  labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+  geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+## Plot Sprin- Summer
+ggplot(sprsum)+
+  geom_point(aes(x = well.cm, y = delta.stage))+
+  labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+  geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
 
 ## Linear model development
 ##lm
-lmbf <- lm(delta.stage ~ well.cm , data = infil.est[,])
-summary(lmbf)
+lmbfspr <- lm(delta.stage ~ well.cm , data = sprsum[,])
+summary(lmbfspr)
 par(mfrow=c(2,2))
-plot(lmbf)
-# normality
-#shapiro.test(infil.est1$log.stage)
+plot(lmbfspr)
 
-# ## mutate for appropriate normality corrections
-# infil.est1 <- infil.est %>%
-#   mutate(log.stage = log(well.cm + 0.01))
+# returns
+# Call:
+#   lm(formula = delta.stage ~ well.cm, data = sprsum[, ])
 # 
-# ##lm
-# lmbf1 <- lm(delta.stage ~ well.cm, data = autwin[,])
-# summary(lmbf1)
-# par(mfrow=c(2,2))
-# plot(lmbf1)
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -0.9057 -0.3349 -0.0202  0.2372  3.1715 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) -40.2412    10.3038  -3.905 0.000264 ***
+#   well.cm       0.4233     0.1079   3.925 0.000248 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.6108 on 54 degrees of freedom
+# Multiple R-squared:  0.2219,	Adjusted R-squared:  0.2075 
+# F-statistic:  15.4 on 1 and 54 DF,  p-value: 0.0002478
 
 # Autocorrelation
-#acf(lmbf$residuals)
-runs.test(lmbf$residuals)
-dwtest(lmbf)
+# acf(lmbfspr$residuals)
+# Not autocorrelated
 
+##lm
+lmbfaut <- lm(delta.stage ~ well.cm , data = autwin[,])
+summary(lmbfaut)
+par(mfrow=c(2,2))
+plot(lmbfaut)
 
-#### Not finished
-# # Rectify autocorrelation
-# infilltrate <- na.omit(infil.est[,])
-# resid_linear <- lmbf$residuals
-# infilltrate[, "resid_linear"] <- resid_linear
-# infilltrate <- na.omit(infilltrate[,])
-# infilltrate.1 <- slide(infilltrate, Var="resid_linear", NewVar = "lag1", slideBy = -1)
-# infilltrate.2 <- na.omit(infilltrate.1)
+#returns
+# Call:
+#   lm(formula = delta.stage ~ well.cm, data = autwin[, ])
 # 
-# lmbf.auto <- lm(delta.stage ~ well.cm + lag1, data = infilltrate.2[,])
-# summary(lmbf.auto)
-# par(mfrow=c(2,2))
-# plot(lmbf.auto)
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -1.6868 -0.4700 -0.2333  0.1806  4.1239 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)
+# (Intercept) -6.45270    5.14711  -1.254    0.213
+# well.cm      0.06685    0.05018   1.332    0.186
+# 
+# Residual standard error: 0.888 on 112 degrees of freedom
+# Multiple R-squared:  0.0156,	Adjusted R-squared:  0.006809 
+# F-statistic: 1.775 on 1 and 112 DF,  p-value: 0.1855
+
+# Autocorrelation
+# acf(lmbfaut$residuals)
+# runs.test(lmbfaut$residuals)
+# Returns:
+# Runs Test - Two sided
+# 
+# data:  lmbfaut$residuals
+# Standardized Runs Statistic = -2.2578, p-value = 0.02396
+# dwtest(lmbfaut)
+# returns
+# Durbin-Watson test
+# 
+# data:  lmbfaut
+# DW = 1.4151, p-value = 0.0006461
+# alternative hypothesis: true autocorrelation is greater than 0
