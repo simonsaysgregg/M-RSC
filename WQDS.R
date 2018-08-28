@@ -187,6 +187,29 @@ base.NOx <- base.NOx %>%
 # median(base.NOx$reduc)
 # return: 44.0
 
+## TN analysis
+base.TN <- base.in %>%
+  select(samp.date,
+         TKN,
+         NOx) %>%
+  transmute(samp.date = samp.date,
+            TN = TKN + NOx)
+# View(base.TN)
+base.TN1 <- base.out %>%
+  select(samp.date,
+         TKN,
+         NOx) %>%
+  transmute(samp.date = samp.date,
+            TN = TKN + NOx)
+# View(base.TN1)
+base.TN <- left_join(base.TN, base.TN1, "samp.date")
+# % reduction
+base.TN <- base.TN %>%
+  mutate(reduc = ((TN.x - TN.y) / TN.x) * 100)
+# View(base.TN)
+# median(base.TN$reduc)
+# return: 22.3
+
 ## NH3N analysis
 base.NH3N <- base.in %>%
   select(samp.date,
@@ -283,6 +306,20 @@ wilcox.test(base.NOx$NOx.x, base.NOx$NOx.y, alternative = "t", paired = TRUE, ex
 # sample estimates:
 #   (pseudo)median 
 # 80.195 
+
+# TN
+wilcox.test(base.TN$TN.x, base.TN$TN.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  base.TN$TN.x and base.TN$TN.y
+# V = 52, p-value = 0.009766
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   108.755 470.640
+# sample estimates:
+#   (pseudo)median 
+# 227.79 
 
 # NH3N
 wilcox.test(base.NH3N$NH3N.x, base.NH3N$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
