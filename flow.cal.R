@@ -174,8 +174,8 @@ plot(lm10.1)
 
 ## normality and autocorrelation corrections
 # average values over 20-min non-rolling
-weir <- aggregate(list(flow.short1$in1.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "20 mins")), FUN = mean)
-dryout <- aggregate(list(flow.short1$dryout.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "20 mins")), FUN = mean)
+weir <- aggregate(list(flow.short1$in1.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "60 mins")), FUN = mean)
+dryout <- aggregate(list(flow.short1$dryout.m_flow), list(cut(as.POSIXlt(flow.short1$timestamp), "60 mins")), FUN = mean)
 # add to new dataframe
 flow.short1.corr <- data.frame(weir)
 colnames(flow.short1.corr) <- c("timestamp", "weir")
@@ -198,28 +198,30 @@ flow.short1.corr <- flow.short1.corr %>%
 # shapiro.test(flow.short1.corr$log.dryout)
 
 ##lm
-lm10.2 <- lm(dryout ~ weir, data = flow.short1.corr[,])
+lm10.2 <- lm(dryout ~ weir, data = flow.short1.corr)
 summary(lm10.2)
 par(mfrow=c(2,2))
 plot(lm10.2)
 
 ## autocorrelation factor
 acf(lm10.2$residuals)
+runs.test(lm10.2$residuals)
+dwtest(lm10.2)
 
-# Rectify autocorrelation
-DS.flow10.2 <- na.omit(flow.short1.corr[,])
-resid_linear <- lm10.2$residuals
-DS.flow10.2[, "resid_linear"] <- resid_linear
-DS.flow20.2 <- slide(DS.flow10.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
-DS.flow30.2 <- na.omit(DS.flow20.2)
-
-lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow30.2[-c(32,33,9,10),])
-summary(lm20.1)
-par(mfrow=c(2,2))
-plot(lm20.1)
+# # Rectify autocorrelation
+# DS.flow10.2 <- na.omit(flow.short1.corr[,])
+# resid_linear <- lm10.2$residuals
+# DS.flow10.2[, "resid_linear"] <- resid_linear
+# DS.flow20.2 <- slide(DS.flow10.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+# DS.flow30.2 <- na.omit(DS.flow20.2)
+# 
+# lm20.1 <- lm(dryout ~ weir + lag1, data = DS.flow30.2[-c(32,33,9,10),])
+# summary(lm20.1)
+# par(mfrow=c(2,2))
+# plot(lm20.1)
 
 ## scatter plot of final model
-ggplot(DS.flow30.2[-c(32,33,9,10),], aes(x = weir + lag1, y = dryout))+
+ggplot(flow.short1.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
@@ -255,7 +257,7 @@ MSE1 <- RSS1 / length(lm20.1$residuals)
 
 RMSE1 <- sqrt(MSE1)
 # View(RMSE1)
-# Returns: 0.006244323
+# Returns: 0.0156
 
 ## Repeat for base flow periods
 ## Create a INflow dataset
