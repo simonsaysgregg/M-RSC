@@ -272,6 +272,32 @@ DS.baseflow <- (DS.flow) %>%
            timestamp <= as.POSIXct("2018-07-05 13:26:00") ) 
 #View(DS.baseflow)
 
+## Extract flow periods from dataset including ADP.index
+DS1.baseflow <- RSC.hydro.m %>%
+  subset(timestamp >= as.POSIXct("2018-05-30 06:28:00")) %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow,
+         ADP.index)
+# View(DS1.baseflow)
+
+DS2.baseflow <- DS1.baseflow %>%
+  subset(ADP.index != 0 &
+           ADP.index != 83 &
+           ADP.index != 87 &
+           ADP.index != 92)
+
+## Summary of ADP
+ADP.sum1 <- (DS1.baseflow) %>%
+  group_by(ADP.index) %>%
+  summarise(duation = difftime(max(timestamp), min(timestamp), units = "days")) 
+# View(ADP.sum1)
+# min(DS2.baseflow$in1.m_flow, na.rm = TRUE)
+# returns: 0
+# max(DS2.baseflow$in1.m_flow, na.rm = TRUE)
+# returns: 0.001197896
+
+
 ## Diagnostic Plots
 ## Melt inflow Dataset 
 DS.baseflow.m <- (DS.baseflow) %>%
@@ -314,8 +340,8 @@ plot(lm100)
 
 ## normality and autocorrelation corrections
 # average values over 20-min non-rolling
-weir <- aggregate(list(DS.baseflow$in1.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "17 mins")), FUN = mean)
-dryout <- aggregate(list(DS.baseflow$dryout.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "17 mins")), FUN = mean)
+weir <- aggregate(list(DS.baseflow$in1.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "20 hours")), FUN = mean)
+dryout <- aggregate(list(DS.baseflow$dryout.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "20 hours")), FUN = mean)
 # add to new dataframe
 DS.baseflow.corr <- data.frame(weir)
 colnames(DS.baseflow.corr) <- c("timestamp", "weir")
@@ -342,26 +368,33 @@ plot(lm100.1)
 ## autocorrelation factor
 acf(lm100.1$residuals)
 
-# Rectify autocorrelation
-DS.flow100.2 <- na.omit(DS.baseflow.corr[,])
-resid_linear <- lm100.1$residuals
-DS.flow100.2[, "resid_linear"] <- resid_linear
-DS.flow20.1 <- slide(DS.flow100.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
-DS.flow20.1 <- slide(DS.flow20.1, Var="resid_linear", NewVar = "lag2", slideBy = -2)
-DS.flow30.1 <- na.omit(DS.flow20.1)
-
-lm100.2 <- lm(dryout ~ weir + lag1, data = DS.flow30.1[-c(18,2242,2142),])
-summary(lm100.2)
-par(mfrow=c(2,2))
-plot(lm100.2)
-
-
 ## scatter plot of final model
-ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1 , y = dryout))+
+ggplot(DS.baseflow.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+# # Rectify autocorrelation
+# DS.flow100.2 <- na.omit(DS.baseflow.corr[,])
+# resid_linear <- lm100.1$residuals
+# DS.flow100.2[, "resid_linear"] <- resid_linear
+# DS.flow20.1 <- slide(DS.flow100.2, Var="resid_linear", NewVar = "lag1", slideBy = -1)
+# DS.flow20.1 <- slide(DS.flow20.1, Var="resid_linear", NewVar = "lag2", slideBy = -2)
+# DS.flow30.1 <- na.omit(DS.flow20.1)
+# 
+# lm100.2 <- lm(dryout ~ weir + lag1, data = DS.flow30.1[-c(18,2242,2142),])
+# summary(lm100.2)
+# par(mfrow=c(2,2))
+# plot(lm100.2)
+# 
+# 
+# ## scatter plot of final model
+# ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1 , y = dryout))+
+#   geom_point()+
+#   geom_smooth(method = lm, se = FALSE)+
+#   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 
 # Call:
@@ -385,32 +418,104 @@ ggplot(DS.flow30.1[-c(18,2242,2142),], aes(x = weir + lag1 , y = dryout))+
 # F-statistic: 1.014e+04 on 2 and 2872 DF,  p-value: < 2.2e-16
 
 
-## autocorrelation factor
-acf(lm100.2$residuals)
-runs.test(lm100.2$residuals)
-dwtest(lm100.2)
+# ## autocorrelation factor
+# acf(lm100.2$residuals)
+# runs.test(lm100.2$residuals)
+# dwtest(lm100.2)
+# 
+# #Root mean square error:
+# RSS2 <- c(crossprod(lm100.2$residuals))
+# 
+# MSE2 <- RSS2 / length(lm100.2$residuals)
+# 
+# RMSE2 <- sqrt(MSE2)
+# # View(RMSE2)
+# # Returns: 0.0002612988
+# 
+# ## remove negative
+# DS.noneg <- DS.flow30.1 %>%
+#   subset(lag1 >= 0)
+# 
+# ## scatter plot without negative
+# ggplot(DS.noneg[,], aes(x = weir + lag1 , y = dryout))+
+#   geom_point()+
+#   geom_smooth(method = lm, se = FALSE)+
+#   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+# 
+# lm100.3 <- lm(dryout ~ weir + lag1, data = DS.noneg[,])
+# summary(lm100.3)
+# par(mfrow=c(2,2))
+# plot(lm100.3)
 
-#Root mean square error:
-RSS2 <- c(crossprod(lm100.2$residuals))
-
-MSE2 <- RSS2 / length(lm100.2$residuals)
-
-RMSE2 <- sqrt(MSE2)
-# View(RMSE2)
-# Returns: 0.0002612988
-
-## remove negative
-DS.noneg <- DS.flow30.1 %>%
-  subset(lag1 >= 0)
-
-## scatter plot without negative
-ggplot(DS.noneg[,], aes(x = weir + lag1 , y = dryout))+
+## Analysis with ADP > 1 day
+## Diagnostic Plots
+## Melt inflow Dataset 
+DS2.baseflow.m <- (DS2.baseflow) %>%
+  select(timestamp,
+         in1.m_flow,
+         dryout.m_flow)%>%
+  melt(id = "timestamp")
+#View(DS.baseflow.m)
+## Plot events for calibration
+ggplot(DS2.baseflow.m, aes(x = timestamp))+
+  geom_point(aes(y = value, color = variable, shape = variable))+
+  scale_shape_manual(values = c(16, 1), labels = c("Weir", "Dry Pond Outlet"))+
+  scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
+  scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
+  labs(y = "Flow Rate (cms)", x = "Date")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+## scatter plot DS.baseflow
+ggplot(DS2.baseflow, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
-lm100.3 <- lm(dryout ~ weir + lag1, data = DS.noneg[,])
-summary(lm100.3)
+## lm Baseflows
+## diagnostic plots
+lm100 <- lm(dryout.m_flow ~ in1.m_flow, data = DS2.baseflow)
+summary(lm100)
 par(mfrow=c(2,2))
-plot(lm100.3)
+plot(lm100)
+
+## normality and autocorrelation corrections
+# average values over 20-min non-rolling
+weir <- aggregate(list(DS.baseflow$in1.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "1 day")), FUN = mean)
+dryout <- aggregate(list(DS.baseflow$dryout.m_flow), list(cut(as.POSIXlt(DS.baseflow$timestamp), "1 day")), FUN = mean)
+# add to new dataframe
+DS2.baseflow.corr <- data.frame(weir)
+colnames(DS2.baseflow.corr) <- c("timestamp", "weir")
+# Repeat for dryout to new dataframe
+scrap24 <- data.frame(dryout)
+colnames(scrap24) <- c("timestamp", "dryout")
+## Join dryout data
+DS2.baseflow.corr <- left_join(DS2.baseflow.corr, scrap24, by = "timestamp") 
+#View(DS.baseflow.corr)
+## Remove na
+DS2.baseflow.corr <- na.omit(DS2.baseflow.corr)
+# mutate for appropriate normality corrections
+DS2.baseflow.corr <- DS2.baseflow.corr %>%
+  mutate(log.weir = log(weir + 0.01),
+         log.dryout = log(dryout + 0.01))
+#View(DS.baseflow.corr)
+
+##lm
+lm100.1 <- lm(dryout ~ weir, data = DS2.baseflow.corr[-c(1),])
+summary(lm100.1)
+par(mfrow=c(2,2))
+plot(lm100.1)
+
+## autocorrelation factor
+acf(lm100.1$residuals)
+runs.test(lm100.1$residuals)
+dwtest(lm100.1)
+
+## scatter plot of final model
+ggplot(DS2.baseflow.corr[-c(1),], aes(x = weir, y = dryout))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+shapiro.test(DS2.baseflow.corr$weir)
