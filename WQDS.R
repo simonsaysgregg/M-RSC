@@ -57,27 +57,10 @@ colnames(DS.wq) <- c("samp.date",
 ##Format date time
 DS.wq$samp.date <- mdy(DS.wq$samp.date)
 
-## Summarize storm flow concentrations per site
-storm.wq <- (DS.wq) %>%
-  select(samp.date, 
-         site, 
-         event, 
-         TKN, 
-         NOx, 
-         NH3N, 
-         TP, 
-         OP, 
-         TSS,
-         TSS.est) %>%
-  subset(event == "storm")
-#View(storm.wq)
-storm.sum.wq <- (storm.wq) %>%
-  group_by(as.character(site)) %>%
-  summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
-#View(storm.sum.wq)
-
-## Test for normailty in pollutants
-#shapiro.test(storm.wq$TKN)
+## TSS correct
+DS.wq <- DS.wq %>%
+  mutate(TSS.extra = ifelse(is.na(TSS.est), TSS, TSS.est ))
+# View(DS.wq)
 
 ## Summarize base flow concentrations per site
 base.wq <- (DS.wq) %>%
@@ -91,12 +74,14 @@ base.wq <- (DS.wq) %>%
          OP, 
          TSS,
          TSS.est) %>%
+  mutate(TN = TKN + NOx,
+         TSS.extra = ifelse(is.na(TSS.est), TSS, TSS.est )) %>%
   subset(event == "base")
-#View(base.wq)
+# View(base.wq)
 base.sum.wq <- (base.wq) %>%
   group_by(as.character(site)) %>%
   summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd), na.rm = TRUE)
-#View(base.sum.wq)
+# View(base.sum.wq)
 
 ## Test for normailty in pollutants
 # shapiro.test(base.wq$TKN)
@@ -278,6 +263,23 @@ base.TSS <- base.TSS %>%
 # median(base.TSS$reduc)
 # return: 33.0
 
+## TSS.extra analysis
+base.TSS.extra <- base.in %>%
+  select(samp.date,
+         TSS.extra) 
+# View(base.TSS.extra)
+base.TSS.extra1 <- base.out %>%
+  select(samp.date,
+         TSS.extra) 
+# View(base.TSS.extra1)
+base.TSS.extra <- left_join(base.TSS.extra, base.TSS.extra1, "samp.date")
+# % reduction
+base.TSS.extra <- base.TSS.extra %>%
+  mutate(reduc = ((TSS.extra.x - TSS.extra.y) / TSS.extra.x) * 100)
+# View(base.TSS.extra)
+# median(base.TSS.extra$reduc)
+# return: 10.5
+
 ## base flow pollutant testing significance
 # TKN
 wilcox.test(base.TKN$TKN.x, base.TKN$TKN.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -376,3 +378,51 @@ wilcox.test(base.TSS$TSS.x, base.TSS$TSS.y, alternative = "g", paired = TRUE, ex
 # sample estimates:
 #   (pseudo)median 
 # 1.41 
+
+# TSS.extra
+wilcox.test(base.TSS.extra$TSS.extra.x, base.TSS.extra$TSS.extra.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  base.TSS.extra$TSS.extra.x and base.TSS.extra$TSS.extra.y
+# V = 48, p-value = 0.01855
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   0.19  Inf
+# sample estimates:
+#   (pseudo)median 
+# 1.225 
+
+## Summarize storm flow concentrations per site
+storm.wq <- (DS.wq) %>%
+  select(samp.date, 
+         site, 
+         event, 
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS,
+         TSS.est) %>%
+  subset(event == "storm")
+#View(storm.wq)
+storm.sum.wq <- (storm.wq) %>%
+  group_by(as.character(site)) %>%
+  summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
+# View(storm.sum.wq)
+
+## Gather Inlet concentrations
+in.wq <- (DS.wq) %>%
+  select(samp.date, 
+         site, 
+         event, 
+         TKN, 
+         NOx, 
+         NH3N, 
+         TP, 
+         OP, 
+         TSS) %>%
+  subset(event == "storm" & 
+         site == "IN1" | site == "IN2")
+# View(in.wq)
