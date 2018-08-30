@@ -97,8 +97,8 @@ evt.flow.corr <- function(in1flow, na.rm = TRUE){
 
 # base flow correction
 # valid for flows <= 0.0014
-base.flow.corr <- function(in1flow, lag1){
-  ifelse(in1flow <= 0.0014, (-1.13*(in1flow) - 0.006 + 0.935 * lag1), in1flow)
+base.flow.corr <- function(in1flow){
+  ifelse(in1flow <= 0.0012, (-4.05*(in1flow) - 0.006), in1flow)
 }
 
 ######################### End
@@ -434,7 +434,6 @@ hydr.ana <- (evt.corr.2) %>%
          rainfall.mm,
          in1.corr,
          in2.hobo.m_flow,
-         out.flow,
          ET,
          storm.index) %>%
   group_by(storm.index) %>%
@@ -446,32 +445,30 @@ hydr.ana <- (evt.corr.2) %>%
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
             ET = sum(ET, na.rm = TRUE),
             direct.precip = runoff.dp(Accumulation),
-            out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600),
-            exfil = 0.0163 * Duration) %>%
+            exfil = (0.42/24) * Duration) %>% # conversion days to hours
   mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip,
          frac.in1 = in1.vol / as.numeric(insum),
          frac.in2 = in2.hobo.vol / as.numeric(insum),
          frac.runon = runoff.est.runon / as.numeric(insum),
          frac.directp = direct.precip / as.numeric(insum),
-         frac.out = - (out.vol / as.numeric(insum)),
          frac.ET = - (ET / as.numeric(insum)),
          frac.exfil = - (exfil / as.numeric(insum)),
-         frac.delta = - (frac.out + frac.ET + frac.exfil) - 1
+         frac.delta = - (frac.ET + frac.exfil) - 1
          )
-#View(hydr.ana)
+# View(hydr.ana)
 
 ## Bar chart of event data
 hydr.ana.bar <- hydr.ana %>%
-  subset(storm.index == 23 |
-           storm.index == 32 |
-           storm.index == 42 |
-           storm.index == 46 |
-           storm.index == 76 |
-           storm.index == 78 |
-           storm.index == 80 |
-           storm.index == 86 |
-           storm.index == 89 |
-           storm.index == 91) %>%
+  # subset(storm.index == 23 |
+  #          storm.index == 32 |
+  #          storm.index == 42 |
+  #          storm.index == 46 |
+  #          storm.index == 76 |
+  #          storm.index == 78 |
+  #          storm.index == 80 |
+  #          storm.index == 86 |
+  #          storm.index == 89 |
+  #          storm.index == 91) %>%
   select(starts_with("frac."),
          storm.index) %>%
   melt(id = "storm.index")
@@ -479,7 +476,7 @@ hydr.ana.bar <- hydr.ana %>%
 # bar chart
 ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill = variable)) +
   geom_col()+
-  scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "Outflow", "ET", "Exfiltration", "Storage"))+
+  scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "ET", "Exfiltration", "Outflow"))+
   labs(y = "Components as Fraction of Total Inflow", x = "Event")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
@@ -624,14 +621,9 @@ base.bal <- base.corr %>%
          out.flow) %>%
   melt(id = "timestamp")
 
-## Create lag variable in data frame
-base.corr <- base.corr %>%
-  mutate(in1lag1 = lag(in1.m_flow))
-#View(base.corr)
-
 ## Apply baseflow corrections
 base.corr.1 <- base.corr %>%
-  mutate(in1.base.corr = base.flow.corr(in1.m_flow, in1lag1))
+  mutate(in1.base.corr = base.flow.corr(in1.m_flow))
 #View(base.corr.1)
 
 ## select original values for understanding
