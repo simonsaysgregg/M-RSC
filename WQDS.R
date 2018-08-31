@@ -424,5 +424,247 @@ in.wq <- (DS.wq) %>%
          OP, 
          TSS) %>%
   subset(event == "storm" & 
-         site == "IN1" | site == "IN2")
+         site == "IN1" | site == "IN2") %>% 
+  mutate(TN = TKN + NOx) 
 # View(in.wq)
+
+## In.wq summary
+in.wq.sum <- in.wq[-c(1),] %>%
+  group_by(as.character(site)) %>%
+  summarise_at(vars(-samp.date, -site, -event), funs(mean, median, max, min, var, sd))
+# View(in.wq.sum)
+
+## In.wq storm stats analysis
+# subset at sampling sites
+storm.in1 <- in.wq[-c(1),] %>%
+  subset(site == "IN1")
+# View(storm.in1)
+storm.in2 <- in.wq[-c(1),] %>%
+  subset(site == "IN2")
+# View(storm.in2)
+
+## TKN analysis
+storm.in.TKN <- storm.in1 %>%
+  select(samp.date,
+         TKN) 
+# View(storm.in.TKN)
+storm.in.TKN1 <- storm.in2 %>%
+  select(samp.date,
+         TKN) 
+# View(storm.in.TKN1)
+storm.in.TKN <- left_join(storm.in.TKN, storm.in.TKN1, "samp.date")
+# % reduction
+storm.in.TKN <- storm.in.TKN %>%
+  mutate(reduc = ((TKN.x - TKN.y) / TKN.x) * 100)
+# View(storm.in.TKN)
+# median(storm.in.TKN$reduc)
+# return: 74.4
+
+## NOx analysis
+storm.in.NOx <- storm.in1 %>%
+  select(samp.date,
+         NOx) 
+# View(storm.in.NOx)
+storm.in.NOx1 <- storm.in2 %>%
+  select(samp.date,
+         NOx) 
+# View(storm.in.NOx1)
+storm.in.NOx <- left_join(storm.in.NOx, storm.in.NOx1, "samp.date")
+# % reduction
+storm.in.NOx <- storm.in.NOx %>%
+  mutate(reduc = ((NOx.x - NOx.y) / NOx.x) * 100)
+# View(storm.in.NOx)
+# median(storm.in.NOx$reduc)
+# return: 34.1
+
+## TN analysis
+storm.in.TN <- storm.in1 %>%
+  select(samp.date,
+         TKN,
+         NOx) %>%
+  transmute(samp.date = samp.date,
+            TN = TKN + NOx)
+# View(storm.in.TN)
+storm.in.TN1 <- storm.in2 %>%
+  select(samp.date,
+         TKN,
+         NOx) %>%
+  transmute(samp.date = samp.date,
+            TN = TKN + NOx)
+# View(storm.in.TN1)
+storm.in.TN <- left_join(storm.in.TN, storm.in.TN1, "samp.date")
+# % reduction
+storm.in.TN <- storm.in.TN %>%
+  mutate(reduc = ((TN.x - TN.y) / TN.x) * 100)
+# View(storm.in.TN)
+# median(storm.in.TN$reduc)
+# return: 67.8
+
+## NH3N analysis
+storm.in.NH3N <- storm.in1 %>%
+  select(samp.date,
+         NH3N) 
+# View(storm.in.NH3N)
+storm.in.NH3N1 <- storm.in2 %>%
+  select(samp.date,
+         NH3N) 
+# View(storm.in.NH3N1)
+storm.in.NH3N <- left_join(storm.in.NH3N, storm.in.NH3N1, "samp.date")
+# % reduction
+storm.in.NH3N <- storm.in.NH3N %>%
+  mutate(reduc = ((NH3N.x - NH3N.y) / NH3N.x) * 100)
+# View(storm.in.NH3N)
+# median(storm.in.NH3N$reduc)
+# return: 52.4
+
+## TP analysis
+storm.in.TP <- storm.in1 %>%
+  select(samp.date,
+         TP) 
+# View(storm.in.TP)
+storm.in.TP1 <- storm.in2 %>%
+  select(samp.date,
+         TP) 
+# View(storm.in.TP1)
+storm.in.TP <- left_join(storm.in.TP, storm.in.TP1, "samp.date")
+# % reduction
+storm.in.TP <- storm.in.TP %>%
+  mutate(reduc = ((TP.x - TP.y) / TP.x) * 100)
+# View(storm.in.TP)
+# median(storm.in.TP$reduc)
+# return: 73.4
+
+## OP analysis
+storm.in.OP <- storm.in1 %>%
+  select(samp.date,
+         OP) 
+# View(storm.in.OP)
+storm.in.OP1 <- storm.in2 %>%
+  select(samp.date,
+         OP) 
+# View(storm.in.OP1)
+storm.in.OP <- left_join(storm.in.OP, storm.in.OP1, "samp.date")
+# % reduction
+storm.in.OP <- storm.in.OP %>%
+  mutate(reduc = ((OP.x - OP.y) / OP.x) * 100)
+# View(storm.in.OP)
+# median(storm.in.OP$reduc)
+# return: 30.5
+
+## TSS analysis
+storm.in.TSS <- storm.in1 %>%
+  select(samp.date,
+         TSS) 
+# View(storm.in.TSS)
+storm.in.TSS1 <- storm.in2 %>%
+  select(samp.date,
+         TSS) 
+# View(storm.in.TSS1)
+storm.in.TSS <- left_join(storm.in.TSS, storm.in.TSS1, "samp.date")
+# % reduction
+storm.in.TSS <- storm.in.TSS %>%
+  mutate(reduc = ((TSS.x - TSS.y) / TSS.x) * 100)
+# View(storm.in.TSS)
+# median(storm.in.TSS$reduc)
+# return: 85.5
+
+
+## storm flow inlet pollutant testing significance
+# TKN
+wilcox.test(storm.in.TKN$TKN.x, storm.in.TKN$TKN.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.TKN$TKN.x and storm.in.TKN$TKN.y
+# V = 52, p-value = 0.009766
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   780.845 10354.065
+# sample estimates:
+#   (pseudo)median 
+# 3103.845
+
+# NOx
+wilcox.test(storm.in.NOx$NOx.x, storm.in.NOx$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.NOx$NOx.x and storm.in.NOx$NOx.y
+# V = 42, p-value = 0.1602
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   -160.375  351.905
+# sample estimates:
+#   (pseudo)median 
+# 186.3 
+
+# TN
+wilcox.test(storm.in.TN$TN.x, storm.in.TN$TN.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.TN$TN.x and storm.in.TN$TN.y
+# V = 54, p-value = 0.003906
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   1038.705 10138.545
+# sample estimates:
+#   (pseudo)median 
+# 3392.15
+
+# NH3N
+wilcox.test(storm.in.NH3N$NH3N.x, storm.in.NH3N$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.NH3N$NH3N.x and storm.in.NH3N$NH3N.y
+# V = 48, p-value = 0.03711
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   20.55 315.48
+# sample estimates:
+#   (pseudo)median 
+# 176.515 
+
+# TP
+wilcox.test(storm.in.TP$TP.x, storm.in.TP$TP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns:
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.TP$TP.x and storm.in.TP$TP.y
+# V = 55, p-value = 0.001953
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   140.22 2702.74
+# sample estimates:
+#   (pseudo)median 
+# 615.55 
+
+# OP
+wilcox.test(storm.in.OP$OP.x, storm.in.OP$OP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns:
+# Wilcoxon signed rank test with continuity correction
+# 
+# data:  storm.in.OP$OP.x and storm.in.OP$OP.y
+# V = 51.5, p-value = 0.01653
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   6.645048 48.064941
+# sample estimates:
+#   (pseudo)median 
+# 23.81498  
+
+# TSS
+wilcox.test(storm.in.TSS$TSS.x, storm.in.TSS$TSS.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.TSS$TSS.x and storm.in.TSS$TSS.y
+# V = 53, p-value = 0.00293
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   130.13    Inf
+# sample estimates:
+#   (pseudo)median 
+# 303.07
+
