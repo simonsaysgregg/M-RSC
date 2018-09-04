@@ -75,6 +75,8 @@ base.wq <- (DS.wq) %>%
          TSS,
          TSS.est) %>%
   mutate(TN = TKN + NOx,
+         ON = TKN - NH3N,
+         PBP = TP - OP,
          TSS.extra = ifelse(is.na(TSS.est), TSS, TSS.est )) %>%
   subset(event == "base")
 # View(base.wq)
@@ -280,6 +282,48 @@ base.TSS.extra <- base.TSS.extra %>%
 # median(base.TSS.extra$reduc)
 # return: 10.5
 
+## ON analysis
+base.ON <- base.in %>%
+  select(samp.date,
+         TKN,
+         NH3N) %>%
+  mutate(ON = TKN - NH3N)
+# View(base.ON)
+base.ON1 <- base.out %>%
+  select(samp.date,
+         TKN,
+         NH3N) %>%
+  mutate(ON = TKN - NH3N)
+# View(base.ON1)
+base.ON <- left_join(base.ON, base.ON1, "samp.date")
+# % reduction
+base.ON <- base.ON %>%
+  mutate(reduc = ((ON.x - ON.y) / ON.x) * 100)
+# View(base.ON)
+# median(base.ON$reduc)
+# return: 21.4
+
+## PBP analysis
+base.PBP <- base.in %>%
+  select(samp.date,
+         TP,
+         OP) %>%
+  mutate(PBP = TP - OP)
+# View(base.PBP)
+base.PBP1 <- base.out %>%
+  select(samp.date,
+         TP,
+         OP) %>%
+  mutate(PBP = TP - OP)
+# View(base.PBP1)
+base.PBP <- left_join(base.PBP, base.PBP1, "samp.date")
+# % reductiPBP
+base.PBP <- base.PBP %>%
+  mutate(reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
+# View(base.PBP)
+# median(base.PBP$reduc)
+# return: 23.0
+
 ## base flow pollutant testing significance
 # TKN
 wilcox.test(base.TKN$TKN.x, base.TKN$TKN.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -393,6 +437,34 @@ wilcox.test(base.TSS.extra$TSS.extra.x, base.TSS.extra$TSS.extra.y, alternative 
 #   (pseudo)median 
 # 1.225 
 
+# ON
+wilcox.test(base.ON$ON.x, base.ON$ON.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  base.ON$ON.x and base.ON$ON.y
+# V = 52, p-value = 0.004883
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   48.125    Inf
+# sample estimates:
+#   (pseudo)median 
+# 115.185
+
+# PBP
+wilcox.test(base.PBP$PBP.x, base.PBP$PBP.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  base.PBP$PBP.x and base.PBP$PBP.y
+# V = 38, p-value = 0.1611
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   -5.695    Inf
+# sample estimates:
+#   (pseudo)median 
+# 8.01 
+
 ## Summarize storm flow concentrations per site
 storm.wq <- (DS.wq) %>%
   select(samp.date, 
@@ -405,6 +477,8 @@ storm.wq <- (DS.wq) %>%
          OP, 
          TSS,
          TSS.est) %>%
+  mutate(ON = TKN - NH3N,
+         PBP = TP - OP) %>%
   subset(event == "storm")
 # View(storm.wq)
 storm.sum.wq <- (storm.wq) %>%
@@ -425,7 +499,9 @@ in.wq <- (DS.wq) %>%
          TSS) %>%
   subset(event == "storm" & 
          site == "IN1" | site == "IN2") %>% 
-  mutate(TN = TKN + NOx) 
+  mutate(TN = TKN + NOx,
+         ON = TKN - NH3N,
+         PBP = TP - OP) 
 # View(in.wq)
 
 ## In.wq summary
@@ -437,10 +513,14 @@ in.wq.sum <- in.wq[-c(1),] %>%
 ## In.wq storm stats analysis
 # subset at sampling sites
 storm.in1 <- in.wq[-c(1),] %>%
-  subset(site == "IN1")
+  subset(site == "IN1") %>%
+  mutate(ON = TKN - NH3N,
+         PBP = TP - OP)
 # View(storm.in1)
 storm.in2 <- in.wq[-c(1),] %>%
-  subset(site == "IN2")
+  subset(site == "IN2") %>%
+  mutate(ON = TKN - NH3N,
+         PBP = TP - OP)
 # View(storm.in2)
 
 ## TKN analysis
@@ -568,6 +648,47 @@ storm.in.TSS <- storm.in.TSS %>%
 # median(storm.in.TSS$reduc)
 # return: 85.5
 
+## ON analysis
+storm.in.ON <- storm.in1 %>%
+  select(samp.date,
+         TKN,
+         NH3N) %>%
+  mutate(ON = TKN - NH3N)
+# View(storm.in.ON)
+storm.in.ON1 <- storm.in2 %>%
+  select(samp.date,
+         TKN,
+         NH3N) %>%
+  mutate(ON = TKN - NH3N)
+# View(storm.in.ON1)
+storm.in.ON <- left_join(storm.in.ON, storm.in.ON1, "samp.date")
+# % reduction
+storm.in.ON <- storm.in.ON %>%
+  mutate(reduc = ((ON.x - ON.y) / ON.x) * 100)
+# View(storm.in.ON)
+# median(storm.in.ON$reduc)
+# return: 74.4
+
+## PBP analysis
+storm.in.PBP <- storm.in1 %>%
+  select(samp.date,
+         TP,
+         OP) %>%
+  mutate(PBP = TP - OP)
+# View(storm.in.PBP)
+storm.in.PBP1 <- storm.in2 %>%
+  select(samp.date,
+         TP,
+         OP) %>%
+  mutate(PBP = TP - OP)
+# View(storm.in.PBP1)
+storm.in.PBP <- left_join(storm.in.PBP, storm.in.PBP1, "samp.date")
+# % reductiPBP
+storm.in.PBP <- storm.in.PBP %>%
+  mutate(reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
+# View(storm.in.PBP)
+# median(storm.in.PBP$reduc)
+# return: 79.2
 
 ## storm flow inlet pollutant testing significance
 # TKN
@@ -668,6 +789,34 @@ wilcox.test(storm.in.TSS$TSS.x, storm.in.TSS$TSS.y, alternative = "g", paired = 
 #   (pseudo)median 
 # 303.07
 
+# ON
+wilcox.test(storm.in.ON$ON.x, storm.in.ON$ON.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.ON$ON.x and storm.in.ON$ON.y
+# V = 53, p-value = 0.00293
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   1177.02     Inf
+# sample estimates:
+#   (pseudo)median 
+# 2789.08 
+
+# PBP
+wilcox.test(storm.in.PBP$PBP.x, storm.in.PBP$PBP.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  storm.in.PBP$PBP.x and storm.in.PBP$PBP.y
+# V = 55, p-value = 0.0009766
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   283.025     Inf
+# sample estimates:
+#   (pseudo)median 
+# 598.295
+
 ## combining inlet concentrations
 # weighted average 0.58 * IN1 + 0.42 * IN2
 in.tot <- left_join(storm.in1,storm.in2, by = "samp.date")
@@ -679,14 +828,18 @@ in.tot <- in.tot %>%
             TN = 0.58 * TN.x + 0.42 * TN.y,
             TP = 0.58 * TP.x + 0.42 * TP.y,
             OP = 0.58 * OP.x + 0.42 * OP.y,
-            TSS = 0.58 * TSS.x + 0.42 * TSS.y)
+            TSS = 0.58 * TSS.x + 0.42 * TSS.y,
+            ON = 0.58 * ON.x + 0.42 * ON.y,
+            PBP = 0.58 * PBP.x + 0.42 * PBP.y)
 # View(in.tot)
 
 ## In/Out wq
 out.storm.wq <- storm.wq[-c(1,2),] %>%
   subset(site == "OUT") %>%
   select(-event, -TSS.est, -site) %>%
-  mutate(TN = TKN + NOx)
+  mutate(TN = TKN + NOx,
+         ON = TKN - NH3N,
+         PBP = TP - OP)
 # View(out.storm.wq)
 tot.wq <- left_join(in.tot, out.storm.wq, by = "samp.date")
 # View(tot.wq)
@@ -705,7 +858,9 @@ wq.reduc <- tot.wq %>%
             TN.reduc = ((TN.x - TN.y) / TN.x) * 100,
             TP.reduc = ((TP.x - TP.y) / TP.x) * 100,
             OP.reduc = ((OP.x - OP.y) / OP.x) * 100,
-            TSS.reduc = ((TSS.x - TSS.y) / TSS.x) * 100)
+            TSS.reduc = ((TSS.x - TSS.y) / TSS.x) * 100,
+            ON.reduc = ((ON.x - ON.y) / ON.x) * 100,
+            PBP.reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
 # View(wq.reduc)
 # median(wq.reduc$TKN.reduc)
 # returns: 45.4
@@ -721,7 +876,10 @@ wq.reduc <- tot.wq %>%
 # returns: 8.9
 # median(wq.reduc$TSS.reduc)
 # returns: 82.7
-
+# median(wq.reduc$ON.reduc)
+# returns: 47.4
+# median(wq.reduc$PBP.reduc)
+# returns: 64.5
 
 ## storm flow in/out pollutant testing significance
 # TKN
@@ -821,3 +979,31 @@ wilcox.test(tot.wq$TSS.x, tot.wq$TSS.y, alternative = "g", paired = TRUE, exact 
 # sample estimates:
 #   (pseudo)median 
 # 186.0402
+
+# ON
+wilcox.test(tot.wq$ON.x, tot.wq$ON.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  tot.wq$ON.x and tot.wq$ON.y
+# V = 55, p-value = 0.0009766
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   735.7842      Inf
+# sample estimates:
+#   (pseudo)median 
+# 1382.504 
+
+# PBP
+wilcox.test(tot.wq$PBP.x, tot.wq$PBP.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  tot.wq$PBP.x and tot.wq$PBP.y
+# V = 55, p-value = 0.0009766
+# alternative hypothesis: true location shift is greater than 0
+# 95 percent confidence interval:
+#   171.4129      Inf
+# sample estimates:
+#   (pseudo)median 
+# 337.7163 
