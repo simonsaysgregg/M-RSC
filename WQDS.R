@@ -1050,7 +1050,7 @@ ggplot(data = TN.ex)+
   geom_hline(aes(yintercept = 1.17, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
 ## TP
 TP.ex <- tot.wq %>%
@@ -1091,7 +1091,7 @@ ggplot(data = TP.ex)+
   geom_hline(aes(yintercept = 0.13, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
 ## TSS
 TSS.ex <- tot.wq %>%
@@ -1132,5 +1132,5 @@ ggplot(data = TSS.ex)+
   #geom_hline(aes(yintercept = 4.0, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
