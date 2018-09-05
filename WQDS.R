@@ -1007,3 +1007,130 @@ wilcox.test(tot.wq$PBP.x, tot.wq$PBP.y, alternative = "g", paired = TRUE, exact 
 # sample estimates:
 #   (pseudo)median 
 # 337.7163 
+
+## Exceedence Probablility
+# Extract from hendersonvill temperature analysis
+# select variables from event summary table short
+## TN
+TN.ex <- tot.wq %>%
+  select(starts_with("TN"))
+colnames(TN.ex) <- c("storm.in", "storm.out")
+TN.ex1 <- base.TN %>%
+  select(starts_with("TN"))
+colnames(TN.ex1) <- c("base.in", "base.out")
+TN.ex <- bind_cols(TN.ex, TN.ex1)
+# View(TN.ex) 
+## sort columns
+TN.ex <- TN.ex %>%
+  mutate(In.st.sort = sort(storm.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.st.sort = sort(storm.out, decreasing = TRUE, na.last = TRUE) / 1000,
+         In.ba.sort = sort(base.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.ba.sort = sort(base.out, decreasing = TRUE, na.last = TRUE) / 1000)
+# View(TN.ex)
+## Rank 
+TN.ex <- TN.ex %>%
+  mutate(In.st.rank = rank(desc(In.st.sort), na.last = TRUE),
+         Out.st.rank = rank(desc(Out.st.sort), na.last = TRUE),
+         In.ba.rank = rank(desc(In.ba.sort), na.last = TRUE),
+         Out.ba.rank = rank(desc(Out.ba.sort), na.last = TRUE))
+# View(TN.ex)
+## Calculate probabiltiy
+TN.ex <- TN.ex %>%
+  mutate(In.st.prob = (In.st.rank) / (10 + 1),
+         Out.st.prob = (Out.st.rank) / (10 + 1),
+         In.ba.prob = (In.ba.rank) / (10 + 1),
+         Out.ba.prob = (Out.ba.rank) / (10 + 1))
+# View(TN.ex)
+## Exceedance probability plots
+ggplot(data = TN.ex)+
+  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TN"))+ 
+  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TN"))+
+  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TN"))+ 
+  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TN"))+
+  geom_hline(aes(yintercept = 1.17, color = "Good/Fair WQ"))+
+  scale_shape_manual(values = c(15,16,0,1))+
+  theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+
+## TP
+TP.ex <- tot.wq %>%
+  select(starts_with("TP"))
+colnames(TP.ex) <- c("storm.in", "storm.out")
+TP.ex1 <- base.TP %>%
+  select(starts_with("TP"))
+colnames(TP.ex1) <- c("base.in", "base.out")
+TP.ex <- bind_cols(TP.ex, TP.ex1)
+# View(TP.ex) 
+## sort columns
+TP.ex <- TP.ex %>%
+  mutate(In.st.sort = sort(storm.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.st.sort = sort(storm.out, decreasing = TRUE, na.last = TRUE) / 1000,
+         In.ba.sort = sort(base.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.ba.sort = sort(base.out, decreasing = TRUE, na.last = TRUE) / 1000)
+# View(TP.ex)
+## Rank 
+TP.ex <- TP.ex %>%
+  mutate(In.st.rank = rank(desc(In.st.sort), na.last = TRUE),
+         Out.st.rank = rank(desc(Out.st.sort), na.last = TRUE),
+         In.ba.rank = rank(desc(In.ba.sort), na.last = TRUE),
+         Out.ba.rank = rank(desc(Out.ba.sort), na.last = TRUE))
+# View(TP.ex)
+## Calculate probabiltiy
+TP.ex <- TP.ex %>%
+  mutate(In.st.prob = (In.st.rank) / (10 + 1),
+         Out.st.prob = (Out.st.rank) / (10 + 1),
+         In.ba.prob = (In.ba.rank) / (10 + 1),
+         Out.ba.prob = (Out.ba.rank) / (10 + 1))
+# View(TP.ex)
+## Exceedance probability plots
+ggplot(data = TP.ex)+
+  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TP"))+ 
+  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TP"))+
+  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TP"))+ 
+  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TP"))+
+  geom_hline(aes(yintercept = 0.13, color = "Good/Fair WQ"))+
+  scale_shape_manual(values = c(15,16,0,1))+
+  theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+
+## TSS
+TSS.ex <- tot.wq %>%
+  select(starts_with("TSS"))
+colnames(TSS.ex) <- c("storm.in", "storm.out")
+TSS.ex1 <- base.TSS %>%
+  select(starts_with("TSS"))
+colnames(TSS.ex1) <- c("base.in", "base.out")
+TSS.ex <- bind_cols(TSS.ex, TSS.ex1)
+# View(TSS.ex) 
+## sort columns
+TSS.ex <- TSS.ex %>%
+  mutate(In.st.sort = sort(storm.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.st.sort = sort(storm.out, decreasing = TRUE, na.last = TRUE) / 1000,
+         In.ba.sort = sort(base.in, decreasing = TRUE, na.last = TRUE) / 1000,
+         Out.ba.sort = sort(base.out, decreasing = TRUE, na.last = TRUE) / 1000)
+# View(TSS.ex)
+## Rank 
+TSS.ex <- TSS.ex %>%
+  mutate(In.st.rank = rank(desc(In.st.sort), na.last = TRUE),
+         Out.st.rank = rank(desc(Out.st.sort), na.last = TRUE),
+         In.ba.rank = rank(desc(In.ba.sort), na.last = TRUE),
+         Out.ba.rank = rank(desc(Out.ba.sort), na.last = TRUE))
+# View(TSS.ex)
+## Calculate probabiltiy
+TSS.ex <- TSS.ex %>%
+  mutate(In.st.prob = (In.st.rank) / (10 + 1),
+         Out.st.prob = (Out.st.rank) / (10 + 1),
+         In.ba.prob = (In.ba.rank) / (10 + 1),
+         Out.ba.prob = (Out.ba.rank) / (10 + 1))
+# View(TSS.ex)
+## Exceedance probability plots
+ggplot(data = TSS.ex)+
+  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TSS"))+ 
+  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TSS"))+
+  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TSS"))+ 
+  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
+  #geom_hline(aes(yintercept = 4.0, color = "Good/Fair WQ"))+
+  scale_shape_manual(values = c(15,16,0,1))+
+  theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(x = "Exceedence Probability", y = "Concentration (mg/L)")
+
