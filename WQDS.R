@@ -92,6 +92,13 @@ base.sum.wq <- (base.wq) %>%
 # shapiro.test(base.wq$TP)
 # shapiro.test(base.wq$OP)
 # shapiro.test(base.wq$TSS)
+# shapiro.test(storm.wq$TKN)
+# shapiro.test(storm.wq$NOx)
+# shapiro.test(storm.wq$NH3N)
+# shapiro.test(storm.wq$TP)
+# shapiro.test(storm.wq$OP)
+# shapiro.test(storm.wq$TSS)
+
 
 ## Box plots of by site, analyte, and parameter
 # Storm data set prep
