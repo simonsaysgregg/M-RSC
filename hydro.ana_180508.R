@@ -660,3 +660,47 @@ ggplot(base.bal)+
   #scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN1 Weir"))+
   labs(y = "Flow Rate (cms)", x = "Date")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+
+## Load reductions
+load <- Rainsum[-c(1),] %>%
+  select(event,
+         Accumulation) %>%
+  mutate(IN1.vol = runoff.in1(Accumulation, 86),
+         IN2.vol = runoff.in2(Accumulation, 84),
+         Runon = runoff.runon(Accumulation, 87),
+         DirectP = runoff.dp(Accumulation),
+         Influent = IN1.vol + IN2.vol + Runon + DirectP,
+         IN.TN = Influent * 3.43, # concentration units mg/L from WQDS Inlet concentration observed
+         IN.TP = Influent * 0.55,
+         IN.TSS = Influent * 0.21,
+         OUT.TN = Influent * 1.97,
+         OUT.TP = Influent * 0.21,
+         OUT.TSS = Influent * 0.04,
+         ELR.TN = ((IN.TN - OUT.TN) / IN.TN) * 100,
+         ELR.TP = ((IN.TP - OUT.TP) / IN.TP) * 100,
+         ELR.TSS = ((IN.TSS - OUT.TSS) / IN.TSS) * 100) 
+# View(load)
+
+## Annual Loads
+load1 <- load[,8:13]
+# View(load1)
+# fraction of normal rainfall observed during monitoring
+n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
+# drainage area (ha)
+DA <- 20.3
+# Annual mass load reduction
+load2 <- load1 %>%
+  summarise(TN.MASS.IN = sum(IN.TN),
+            TP.MASS.IN = sum(IN.TP),
+            TSS.MASS.IN = sum(IN.TSS),
+            TN.MASS.OUT = sum(OUT.TN),
+            TP.MASS.OUT = sum(OUT.TP),
+            TSS.MASS.OUT = sum(OUT.TSS)) %>%
+  transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT) / (1000000)) * n.rain.frac,
+            TP.m.red = ((TP.MASS.IN - TP.MASS.OUT) / (1000000)) * n.rain.frac,
+            TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT) / (1000000)) * n.rain.frac,
+            TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000000)) * n.rain.frac,
+            TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000000)) * n.rain.frac,
+            TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000000)) * n.rain.frac)
+# View(load2)
