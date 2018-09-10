@@ -1111,10 +1111,10 @@ TSS.ex <- bind_cols(TSS.ex, TSS.ex1)
 # View(TSS.ex) 
 ## sort columns
 TSS.ex <- TSS.ex %>%
-  mutate(In.st.sort = sort(storm.in, decreasing = TRUE, na.last = TRUE) / 1000,
-         Out.st.sort = sort(storm.out, decreasing = TRUE, na.last = TRUE) / 1000,
-         In.ba.sort = sort(base.in, decreasing = TRUE, na.last = TRUE) / 1000,
-         Out.ba.sort = sort(base.out, decreasing = TRUE, na.last = TRUE) / 1000)
+  mutate(In.st.sort = sort(storm.in, decreasing = TRUE, na.last = TRUE) ,
+         Out.st.sort = sort(storm.out, decreasing = TRUE, na.last = TRUE) ,
+         In.ba.sort = sort(base.in, decreasing = TRUE, na.last = TRUE) ,
+         Out.ba.sort = sort(base.out, decreasing = TRUE, na.last = TRUE) )
 # View(TSS.ex)
 ## Rank 
 TSS.ex <- TSS.ex %>%
@@ -1136,7 +1136,7 @@ ggplot(data = TSS.ex)+
   geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TSS"))+
   geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TSS"))+ 
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
-  #geom_hline(aes(yintercept = 4.0, color = "Good/Fair WQ"))+
+  geom_hline(aes(yintercept = 4.0, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
