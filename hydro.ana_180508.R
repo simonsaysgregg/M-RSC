@@ -663,27 +663,22 @@ ggplot(base.bal)+
 
 
 ## Load reductions
-load <- Rainsum[-c(1),] %>%
-  select(event,
+load <- hydr.ana %>%
+  select(insum,  # insum in m^3
          Accumulation) %>%
-  mutate(IN1.vol = runoff.in1(Accumulation, 86),
-         IN2.vol = runoff.in2(Accumulation, 84),
-         Runon = runoff.runon(Accumulation, 87),
-         DirectP = runoff.dp(Accumulation),
-         Influent = IN1.vol + IN2.vol + Runon + DirectP,
-         IN.TN = Influent * 3.43, # concentration units mg/L from WQDS Inlet concentration observed
-         IN.TP = Influent * 0.55,
-         IN.TSS = Influent * 0.21,
-         OUT.TN = Influent * 1.97,
-         OUT.TP = Influent * 0.21,
-         OUT.TSS = Influent * 0.04,
+  mutate(IN.TN = (as.numeric(insum) * 3.43), # concentration units mg/L from WQDS Inlet concentration observed
+         IN.TP = (as.numeric(insum) * 0.55), 
+         IN.TSS = (as.numeric(insum) * 207.26),
+         OUT.TN = (as.numeric(insum) * 1.97),
+         OUT.TP = (as.numeric(insum) * 0.21),
+         OUT.TSS = (as.numeric(insum) * 37.88),
          ELR.TN = ((IN.TN - OUT.TN) / IN.TN) * 100,
          ELR.TP = ((IN.TP - OUT.TP) / IN.TP) * 100,
          ELR.TSS = ((IN.TSS - OUT.TSS) / IN.TSS) * 100) 
 # View(load)
 
 ## Annual Loads
-load1 <- load[,8:13]
+load1 <- load[,3:8]
 # View(load1)
 # fraction of normal rainfall observed during monitoring
 n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
@@ -691,16 +686,73 @@ n.rain.frac <- 1169.1632 / sum(load$Accumulation)
 DA <- 20.3
 # Annual mass load reduction
 load2 <- load1 %>%
-  summarise(TN.MASS.IN = sum(IN.TN),
+  summarise(TN.MASS.IN = sum(IN.TN), # sum mass in grams
             TP.MASS.IN = sum(IN.TP),
             TSS.MASS.IN = sum(IN.TSS),
             TN.MASS.OUT = sum(OUT.TN),
             TP.MASS.OUT = sum(OUT.TP),
             TSS.MASS.OUT = sum(OUT.TSS)) %>%
-  transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT) / (1000000)) * n.rain.frac,
-            TP.m.red = ((TP.MASS.IN - TP.MASS.OUT) / (1000000)) * n.rain.frac,
-            TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT) / (1000000)) * n.rain.frac,
-            TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000000)) * n.rain.frac,
-            TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000000)) * n.rain.frac,
-            TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000000)) * n.rain.frac)
+  transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
+            TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / 1000) * n.rain.frac,
+            TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / 1000) * n.rain.frac,
+            TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
 # View(load2)
+# load <- Rainsum[-c(1),] %>%
+#   select(event,
+#          Accumulation) %>%
+#   mutate(IN1.vol = runoff.in1(Accumulation, 86),
+#          IN2.vol = runoff.in2(Accumulation, 84),
+#          Runon = runoff.runon(Accumulation, 87),
+#          DirectP = runoff.dp(Accumulation),
+#          Influent = IN1.vol + IN2.vol + Runon + DirectP, # Influent in m^3
+#          IN.TN = (Influent * 3.43), # concentration units mg/L from WQDS Inlet concentration observed
+#          IN.TP = (Influent * 0.55), 
+#          IN.TSS = (Influent * 207.26),
+#          OUT.TN = (Influent * 1.97),
+#          OUT.TP = (Influent * 0.21),
+#          OUT.TSS = (Influent * 37.88),
+#          ELR.TN = ((IN.TN - OUT.TN) / IN.TN) * 100,
+#          ELR.TP = ((IN.TP - OUT.TP) / IN.TP) * 100,
+#          ELR.TSS = ((IN.TSS - OUT.TSS) / IN.TSS) * 100) 
+# # View(load)
+#  
+# ## Annual Loads
+# load1 <- load[,8:13]
+# # View(load1)
+# # fraction of normal rainfall observed during monitoring
+# n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
+# # drainage area (ha)
+# DA <- 20.3
+# # Annual mass load reduction
+# load2 <- load1 %>%
+#   summarise(TN.MASS.IN = sum(IN.TN), # sum mass in grams
+#             TP.MASS.IN = sum(IN.TP),
+#             TSS.MASS.IN = sum(IN.TSS),
+#             TN.MASS.OUT = sum(OUT.TN),
+#             TP.MASS.OUT = sum(OUT.TP),
+#             TSS.MASS.OUT = sum(OUT.TSS)) %>%
+#   transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
+#             TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / 1000) * n.rain.frac,
+#             TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / 1000) * n.rain.frac,
+#             TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+#             TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+#             TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
+# # View(load2)
+
+## base flow loads
+base.load <- base.corr %>% 
+  select(in1.m_flow) %>% 
+  summarise(tot.vol = sum(in1.m_flow * 120, na.rm = TRUE)) 
+# View(base.load)
+
+# Mass sum
+base.load1 <- base.load %>%
+  transmute(TN.mass.IN = tot.vol * 0.905, # concentrations in mg/L
+            TP.mass.IN = tot.vol * 0.139,
+            TSS.mass.IN = tot.vol * 3.32,
+            TN.mass.OUT = tot.vol * 0.654,
+            TP.mass.OUT = tot.vol * 0.15,
+            TSS.mass.OUT = tot.vol * 2.81)
+# View(base.load1)
