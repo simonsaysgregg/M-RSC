@@ -64,7 +64,7 @@ runoff.in2 <- function(acc, CN, WA = 30.59) {
 }
 
 # Runon runoff estimation function
-runoff.runon <- function(acc, CN, WA = 1.95) { 
+runoff.runon <- function(acc, CN, WA = 0.74) { 
   # convert accumulation to inches
   acc.in <- acc * 3.94
   # surface storage
@@ -242,16 +242,16 @@ Rainsum <- RainEvents %>%
                                  Accumulation = sum(rainfall.mm, na.rm = TRUE),
                                  max.intensity5 = max(int.5min, na.rm = TRUE),
                                  runoff.est.in1 = runoff.in1(Accumulation, CN = 86),
-                                 in1.vol = sum(in1.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
-                                 dryout.vol = sum(dryout.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+                                 in1.vol = sum(in1.m_flow * 120, na.rm = TRUE),
+                                 dryout.vol = sum(dryout.m_flow * 120, na.rm = TRUE) ,
                                  runoff.est.in2 = runoff.in2(Accumulation, CN = 84),
-                                 in2.vol = sum(in2.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
-                                 in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+                                 in2.vol = sum(in2.m_flow * 120, na.rm = TRUE) ,
+                                 in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) ,
                                  runoff.est.runon = runoff.runon(Accumulation, CN = 87),
                                  ET.sum = sum(ET, na.rm = TRUE),
                                  direct.precip = runoff.dp(Accumulation),
-                                 out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600),
-                                 out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE) * (Duration * 3600))})
+                                 out.vol = sum(out.flow * 120, na.rm = TRUE) ,
+                                 out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE) )})
 # View(Rainsum)
 
 
@@ -271,9 +271,9 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
          Accumulation,
          max.intensity5) %>%
   summarise_all(funs(median, min, max), na.rm = TRUE) 
-#View(Rainfall_event.summary)
+# View(Rainfall_event.summary)
 
-# ## volume reduction analysis of uncorrected inflow data
+## volume reduction analysis of uncorrected inflow data
 # data.bad <- RSC.hydro.m %>%
 #   group_by(storm.index) %>%
 #   summarise(event = mean(storm.index),
@@ -283,16 +283,16 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
 #             Accumulation = sum(rainfall.mm, na.rm = TRUE),
 #             max.intensity5 = max(int.5min, na.rm = TRUE),
 #             runoff.est.in1 = runoff.in1(Accumulation, CN = 86),
-#             in1.vol = sum(in1.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
-#             dryout.vol = sum(dryout.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+#             in1.vol = sum(in1.m_flow * 120, na.rm = TRUE),
+#             dryout.vol = sum(dryout.m_flow * 120, na.rm = TRUE),
 #             runoff.est.in2 = runoff.in2(Accumulation, CN = 84),
-#             in2.vol = sum(in2.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
-#             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+#             in2.vol = sum(in2.m_flow * 120, na.rm = TRUE),
+#             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE),
 #             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
 #             ET.sum = sum(ET, na.rm = TRUE),
 #             direct.precip = runoff.dp(Accumulation),
-#             out.vol = sum(out.flow * 120, na.rm = TRUE) * (Duration * 3600),
-#             out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE) * (Duration * 3600))
+#             out.vol = sum(out.flow * 120, na.rm = TRUE),
+#             out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE))
 # # View(data.bad)
 # 
 # data.bad.1 <- data.bad %>%
@@ -319,8 +319,8 @@ Rainfall_event.summary <- (Rainsum[-1, ]) %>%
 # data.bad.2 <- data.bad.1 %>%
 #     mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip,
 #            flow.vol.perc_diff = ((as.numeric(insum) - as.numeric(out.vol)) / as.numeric(insum)) * 100)
-# # View(data.bad.2)
-# # median(data.bad.2$flow.vol.perc_diff)
+# View(data.bad.2)
+# median(data.bad.2$flow.vol.perc_diff)
 # 
 # # ## Bar chart of event data
 # # bar.bad <- data.bad %>%
@@ -424,7 +424,7 @@ mod.eff <- (evt.corr.1) %>%
   group_by(storm.index) %>%
   summarise(perc_diffin.dry = (( sum(dryout.m_flow, na.rm = TRUE) - sum(in1.m_flow, na.rm = TRUE) / sum(dryout.m_flow, na.rm = TRUE))) * 100,
             perc_diffmod.dry = ((sum(dryout.m_flow, na.rm = TRUE) - sum(in1.corr, na.rm = TRUE) / sum(dryout.m_flow, na.rm = TRUE) * 100)))
-#View(mod.eff)
+# View(mod.eff)
 
 
 ## Water Ballance Calcultaion
@@ -440,8 +440,8 @@ hydr.ana <- (evt.corr.2) %>%
   summarise(Start = min(timestamp),
             Duration = ((max(timestamp)-min(timestamp))),
             Accumulation = sum(rainfall.mm, na.rm = TRUE),
-            in1.vol = sum(in1.corr * 120, na.rm = TRUE) * (Duration * 3600),
-            in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) * (Duration * 3600),
+            in1.vol = sum(in1.corr * 120, na.rm = TRUE) ,
+            in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE),
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
             ET = sum(ET, na.rm = TRUE),
             direct.precip = runoff.dp(Accumulation),
@@ -458,17 +458,8 @@ hydr.ana <- (evt.corr.2) %>%
 # View(hydr.ana)
 
 ## Bar chart of event data
+# showing elements of hydrology as fraction of inflow
 hydr.ana.bar <- hydr.ana %>%
-  # subset(storm.index == 23 |
-  #          storm.index == 32 |
-  #          storm.index == 42 |
-  #          storm.index == 46 |
-  #          storm.index == 76 |
-  #          storm.index == 78 |
-  #          storm.index == 80 |
-  #          storm.index == 86 |
-  #          storm.index == 89 |
-  #          storm.index == 91) %>%
   select(starts_with("frac."),
          storm.index) %>%
   melt(id = "storm.index")
@@ -608,8 +599,8 @@ base.corr <- (RSC.hydro.m) %>%
 base.1 <- base.corr %>%
   group_by(ADP.index) %>%
   summarise(duration = difftime(max(timestamp), min(timestamp), units = "days"),
-         in.vol = sum((in1.m_flow + in2.hobo.m_flow) * 120, na.rm = TRUE) * (duration * 3600),
-         out.vol = sum(out.flow * 120, na.rm = TRUE) * (duration * 3600)) %>%
+         in.vol = sum((in1.m_flow + in2.hobo.m_flow) * 120, na.rm = TRUE),
+         out.vol = sum(out.flow * 120, na.rm = TRUE)) %>%
   mutate(perc_diff= ((in.vol - out.vol) / as.numeric(in.vol)) * 100)
 # View(base.1)
 
