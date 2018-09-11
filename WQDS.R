@@ -1141,3 +1141,33 @@ ggplot(data = TSS.ex)+
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
+
+## Efficiency Ratio v. accumulation regression
+Accumulation <- c(0.71,0.5,1.13,1.01,0.84,0.7,0.77,1.74,0.93,1.65) * 25.4
+tot.wq[,"Accumulation"] <- Accumulation
+
+##lm TN
+lmTN <- lm(log(TN.x/TN.y) ~ log(Accumulation), data = tot.wq)
+summary(lmTN)
+par(mfrow=c(2,2))
+plot(lmTN)
+ 
+##lm TP
+lmTP <- lm(log(TP.x/TP.y) ~ log(Accumulation), data = tot.wq)
+summary(lmTP)
+par(mfrow=c(2,2))
+plot(lmTP)
+
+##lm TSS
+lmTSS <- lm(log(TSS.x/TSS.y) ~ log(Accumulation), data = tot.wq)
+summary(lmTSS)
+par(mfrow=c(2,2))
+plot(lmTSS)
+
+## Accumulation v. concentration regression
+##lm TN
+lmTN.in <- lm(log(TN.x) ~ log(Accumulation), data = tot.wq)
+summary(lmTN.in)
+par(mfrow=c(2,2))
+plot(lmTN.in)
+
