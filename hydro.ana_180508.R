@@ -298,6 +298,68 @@ evt.corr <- evt.ana.corr1 %>%
   mutate(in1.corr = evt.flow.corr(in1.m_flow))
 # View(evt.corr)
 
+## Summarise rainfall events of analysis
+corr.evt.sum <- (evt.corr) %>%
+  group_by(storm.index) %>%
+  summarise(Accumulation = sum(rainfall.mm, na.rm = TRUE),
+            Duration = ((max(timestamp)-min(timestamp))),
+            max.intensity5 = max(int.5min, na.rm = TRUE))
+# View(corr.evt.sum)
+# range(corr.evt.sum$Accumulation)
+# returns: 6.35 - 38.608
+# median(corr.evt.sum$Accumulation)
+# returns: 21.336
+# sum(corr.evt.sum$Accumulation)
+# returns: 287.782
+# range(corr.evt.sum$Duration)
+# returns: 1.04 - 20.37
+# median(corr.evt.sum$Duration)
+# returns: 14.1
+# range(corr.evt.sum$max.intensity5)
+# returns: 13.72 - 109.73
+# median(corr.evt.sum$max.intensity5)
+# returns: 27.43
+
+## Summary analysis events ADP 
+ana.ADP.evt <- ADP.sum %>%
+  subset(ADP.index == 23 |
+         ADP.index == 26 |
+         ADP.index == 32 |
+         ADP.index == 42 |
+         ADP.index == 46 |
+         ADP.index == 69 |
+         ADP.index == 70 |
+         ADP.index == 76 |
+         ADP.index == 78 |
+         ADP.index == 80 |
+         ADP.index == 82 |
+         ADP.index == 83 |
+         ADP.index == 86 |
+         ADP.index == 89 |
+         ADP.index == 91) 
+# View(ana.ADP.evt)
+# range(ana.ADP.evt$duation)
+# returns: 0.04 - 4.87
+# median(ana.ADP.evt$duation)
+# returns: 1.92
+
+## Summary analysis for WQ events ADP for WQ 
+ana.ADP.WQ <- ADP.sum %>%
+  subset(ADP.index == 64 |
+           ADP.index == 65 |
+           ADP.index == 66 |
+           ADP.index == 67 |
+           ADP.index == 73 |
+           ADP.index == 75 |
+           ADP.index == 78 |
+           ADP.index == 79 |
+           ADP.index == 89 |
+           ADP.index == 91) 
+# View(ana.ADP.WQ)
+# range(ana.ADP.evt$duation)
+# returns: 0.04 - 4.87
+# median(ana.ADP.evt$duation)
+# returns: 1.92
 ## Temp
 corted.flow.plot <- evt.corr %>%
   select(timestamp,
@@ -345,9 +407,16 @@ hydr.ana <- (evt.corr) %>%
          frac.directp = direct.precip / as.numeric(insum),
          frac.ET = - (ET / as.numeric(insum)),
          frac.exfil = - (exfil / as.numeric(insum)),
-         frac.delta = - (frac.ET + frac.exfil) - 1
-         )
+         frac.delta = - (frac.ET + frac.exfil) - 1)
 # View(hydr.ana)
+
+## Median inflow element fractions
+# median(hydr.ana$frac.in1)
+# returns: 0.3167
+# median(hydr.ana$frac.in2)
+# returns: 0.2774
+# median(hydr.ana$frac.runon)
+# returns: 0.3999
 
 ## Bar chart of event data
 # showing elements of hydrology as fraction of inflow
@@ -363,27 +432,28 @@ ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill =
   labs(y = "Components as Fraction of Total Inflow", x = "Event")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
-## Volume reduction metric
-# subset events of interest
-evt.int <- c(23,32,42,46,76,78,80,86,89,91)
-evt.VR <- hydr.ana %>%
-  subset(storm.index == 23 |
-           storm.index == 32 |
-           storm.index == 42 |
-           storm.index == 46 |
-           storm.index == 76 |
-           storm.index == 78 |
-           storm.index == 80 |
-           storm.index == 86 |
-           storm.index == 89 |
-           storm.index == 91) %>%
-  select(storm.index,
-         insum,
-         out.vol) %>%
-  mutate(VR = (insum - out.vol) / as.numeric(insum))
-#View(evt.VR)
-# median(as.numeric(evt.VR$VR))
-# 0.828437
+
+# ## Volume reduction metric
+# # subset events of interest
+# evt.int <- c(23,32,42,46,76,78,80,86,89,91)
+# evt.VR <- hydr.ana %>%
+#   subset(storm.index == 23 |
+#            storm.index == 32 |
+#            storm.index == 42 |
+#            storm.index == 46 |
+#            storm.index == 76 |
+#            storm.index == 78 |
+#            storm.index == 80 |
+#            storm.index == 86 |
+#            storm.index == 89 |
+#            storm.index == 91) %>%
+#   select(storm.index,
+#          insum,
+#          out.vol) %>%
+#   mutate(VR = (insum - out.vol) / as.numeric(insum))
+# #View(evt.VR)
+# # median(as.numeric(evt.VR$VR))
+# # 0.828437
 
 ## Normality and similarity btw influent
 in.sig <- hydr.ana %>%
@@ -420,60 +490,60 @@ in.sig <- hydr.ana %>%
 # V = 50, p-value = 0.01953
 # alternative hypothesis: true location shift is not equal to 0
 
-## Peak Flow Reduction
-# same subset as previous
-evt.PR <- evt.corr.2 %>%
-  subset(storm.index == 23 |
-           storm.index == 32 |
-           storm.index == 42 |
-           storm.index == 46 |
-           storm.index == 76 |
-           storm.index == 78 |
-           storm.index == 80 |
-           storm.index == 86 |
-           storm.index == 89 |
-           storm.index == 91) %>%
-  select(storm.index,
-         in1.m_flow,
-         in2.hobo.m_flow,
-         out.flow) %>%
-  group_by(storm.index) %>%
-  summarise(in1p = max(in1.m_flow, na.rm = TRUE),
-         in2p = max(in2.hobo.m_flow, na.rm = TRUE),
-         outp = max(out.flow, na.rm = TRUE))
-# View(evt.PR)
-
-## Grab frac of inflow volumes
-in.frac <- hydr.ana %>%
-  subset(storm.index == 23 |
-           storm.index == 32 |
-           storm.index == 42 |
-           storm.index == 46 |
-           storm.index == 76 |
-           storm.index == 78 |
-           storm.index == 80 |
-           storm.index == 86 |
-           storm.index == 89 |
-           storm.index == 91) %>%
-  select(frac.in1,
-         frac.in2,
-         insum,
-         storm.index)
-
-## Join datasets
-evt.PR <- left_join(evt.PR, in.frac, by = "storm.index")
-
-## Calculate inlet Peak Flow
-# composited (weighted average method)
-evt.PR <- evt.PR %>%
-  group_by(storm.index) %>%
-  mutate(in.peak = (in1p * frac.in1) + (in2p * frac.in2),
-         PR = ((in.peak - outp) / as.numeric(in.peak)) * 100,
-         in.med = median(c(in1p, in2p)),
-         PR.med = ((in.med - outp) / as.numeric(in.med) * 100))
-# View(evt.PR)
-# median(as.numeric(evt.PR$PR))
-# -192.4113
+# ## Peak Flow Reduction
+# # same subset as previous
+# evt.PR <- evt.corr.2 %>%
+#   subset(storm.index == 23 |
+#            storm.index == 32 |
+#            storm.index == 42 |
+#            storm.index == 46 |
+#            storm.index == 76 |
+#            storm.index == 78 |
+#            storm.index == 80 |
+#            storm.index == 86 |
+#            storm.index == 89 |
+#            storm.index == 91) %>%
+#   select(storm.index,
+#          in1.m_flow,
+#          in2.hobo.m_flow,
+#          out.flow) %>%
+#   group_by(storm.index) %>%
+#   summarise(in1p = max(in1.m_flow, na.rm = TRUE),
+#          in2p = max(in2.hobo.m_flow, na.rm = TRUE),
+#          outp = max(out.flow, na.rm = TRUE))
+# # View(evt.PR)
+# 
+# ## Grab frac of inflow volumes
+# in.frac <- hydr.ana %>%
+#   subset(storm.index == 23 |
+#            storm.index == 32 |
+#            storm.index == 42 |
+#            storm.index == 46 |
+#            storm.index == 76 |
+#            storm.index == 78 |
+#            storm.index == 80 |
+#            storm.index == 86 |
+#            storm.index == 89 |
+#            storm.index == 91) %>%
+#   select(frac.in1,
+#          frac.in2,
+#          insum,
+#          storm.index)
+# 
+# ## Join datasets
+# evt.PR <- left_join(evt.PR, in.frac, by = "storm.index")
+# 
+# ## Calculate inlet Peak Flow
+# # composited (weighted average method)
+# evt.PR <- evt.PR %>%
+#   group_by(storm.index) %>%
+#   mutate(in.peak = (in1p * frac.in1) + (in2p * frac.in2),
+#          PR = ((in.peak - outp) / as.numeric(in.peak)) * 100,
+#          in.med = median(c(in1p, in2p)),
+#          PR.med = ((in.med - outp) / as.numeric(in.med) * 100))
+# # View(evt.PR)
+# # median(as.numeric(evt.PR$PR))
+# # -192.4113
 
 ## Baseflow corections and analysis
 # Determine events where correction model applies
@@ -549,19 +619,28 @@ ggplot(base.bal)+
 load <- hydr.ana %>%
   select(insum,  # insum in m^3
          Accumulation) %>%
-  mutate(IN.TN = (as.numeric(insum) * 3.43), # concentration units mg/L from WQDS Inlet concentration observed
-         IN.TP = (as.numeric(insum) * 0.55), 
-         IN.TSS = (as.numeric(insum) * 207.26),
-         OUT.TN = (as.numeric(insum) * 1.97),
-         OUT.TP = (as.numeric(insum) * 0.21),
-         OUT.TSS = (as.numeric(insum) * 37.88),
-         ELR.TN = ((IN.TN - OUT.TN) / IN.TN) * 100,
-         ELR.TP = ((IN.TP - OUT.TP) / IN.TP) * 100,
-         ELR.TSS = ((IN.TSS - OUT.TSS) / IN.TSS) * 100) 
+  mutate(IN.TKN = (as.numeric(insum) * 1.6),
+         IN.TAN = (as.numeric(insum) * 0.15),
+         IN.NO3 = (as.numeric(insum) * 0.3),
+         IN.ON = (as.numeric(insum) * 1.5),
+         IN.TN = (as.numeric(insum) * 2.0),# concentration units mg/L from WQDS Inlet concentration observed
+         IN.OP = (as.numeric(insum) * 0.05),
+         IN.PBP = (as.numeric(insum) * 0.3),
+         IN.TP = (as.numeric(insum) * 0.3), 
+         IN.TSS = (as.numeric(insum) * 116.3),
+         OUT.TKN = (as.numeric(insum) * 1.4),
+         OUT.TAN = (as.numeric(insum) * 0.1),
+         OUT.NO3 = (as.numeric(insum) * 0.6),
+         OUT.ON = (as.numeric(insum) * 1.2),
+         OUT.TN = (as.numeric(insum) * 2.0),# concentration units mg/L from WQDS Inlet concentration observed
+         OUT.OP = (as.numeric(insum) * 0.07),
+         OUT.PBP = (as.numeric(insum) * 0.1),
+         OUT.TP = (as.numeric(insum) * 0.2), 
+         OUT.TSS = (as.numeric(insum) * 37.9)) 
 # View(load)
 
 ## Annual Loads
-load1 <- load[,3:8]
+load1 <- load[,3:20]
 # View(load1)
 # fraction of normal rainfall observed during monitoring
 n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
@@ -569,60 +648,44 @@ n.rain.frac <- 1169.1632 / sum(load$Accumulation)
 DA <- 20.3
 # Annual mass load reduction
 load2 <- load1 %>%
-  summarise(TN.MASS.IN = sum(IN.TN), # sum mass in grams
+  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in grams
+            TAN.MASS.IN = sum(IN.TAN),
+            NO3.MASS.IN = sum(IN.NO3),
+            ON.MASS.IN = sum(IN.ON),
+            TN.MASS.IN = sum(IN.TN),
+            OP.MASS.IN = sum(IN.OP),
+            PBP.MASS.IN = sum(IN.PBP),
             TP.MASS.IN = sum(IN.TP),
             TSS.MASS.IN = sum(IN.TSS),
+            TKN.MASS.OUT = sum(OUT.TKN),
+            TAN.MASS.OUT = sum(OUT.TAN),
+            NO3.MASS.OUT = sum(OUT.NO3),
+            ON.MASS.OUT = sum(OUT.ON),
             TN.MASS.OUT = sum(OUT.TN),
+            OP.MASS.OUT = sum(OUT.OP),
+            PBP.MASS.OUT = sum(OUT.PBP),
             TP.MASS.OUT = sum(OUT.TP),
             TSS.MASS.OUT = sum(OUT.TSS)) %>%
-  transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
+  transmute(TKN.m.red = ((TKN.MASS.IN - TKN.MASS.OUT)  / 1000) * n.rain.frac,
+            TAN.m.red = ((TAN.MASS.IN - TAN.MASS.OUT)  / 1000) * n.rain.frac,
+            NO3.m.red = ((NO3.MASS.IN - NO3.MASS.OUT)  / 1000) * n.rain.frac,
+            ON.m.red = ((ON.MASS.IN - ON.MASS.OUT)  / 1000) * n.rain.frac,
+            TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
+            OP.m.red = ((OP.MASS.IN - OP.MASS.OUT)  / 1000) * n.rain.frac,
+            PBP.m.red = ((PBP.MASS.IN - PBP.MASS.OUT)  / 1000) * n.rain.frac,
             TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / 1000) * n.rain.frac,
             TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / 1000) * n.rain.frac,
+            TKN.m.OUT = ((TKN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            TAN.m.OUT = ((TAN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            NO3.m.OUT = ((NO3.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            ON.m.OUT = ((ON.MASS.OUT) / (DA * 1000)) * n.rain.frac,
             TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            OP.m.OUT = ((OP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
+            PBP.m.OUT = ((PBP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
             TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
             TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
 # View(load2)
-# load <- Rainsum[-c(1),] %>%
-#   select(event,
-#          Accumulation) %>%
-#   mutate(IN1.vol = runoff.in1(Accumulation, 86),
-#          IN2.vol = runoff.in2(Accumulation, 84),
-#          Runon = runoff.runon(Accumulation, 87),
-#          DirectP = runoff.dp(Accumulation),
-#          Influent = IN1.vol + IN2.vol + Runon + DirectP, # Influent in m^3
-#          IN.TN = (Influent * 3.43), # concentration units mg/L from WQDS Inlet concentration observed
-#          IN.TP = (Influent * 0.55), 
-#          IN.TSS = (Influent * 207.26),
-#          OUT.TN = (Influent * 1.97),
-#          OUT.TP = (Influent * 0.21),
-#          OUT.TSS = (Influent * 37.88),
-#          ELR.TN = ((IN.TN - OUT.TN) / IN.TN) * 100,
-#          ELR.TP = ((IN.TP - OUT.TP) / IN.TP) * 100,
-#          ELR.TSS = ((IN.TSS - OUT.TSS) / IN.TSS) * 100) 
-# # View(load)
-#  
-# ## Annual Loads
-# load1 <- load[,8:13]
-# # View(load1)
-# # fraction of normal rainfall observed during monitoring
-# n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
-# # drainage area (ha)
-# DA <- 20.3
-# # Annual mass load reduction
-# load2 <- load1 %>%
-#   summarise(TN.MASS.IN = sum(IN.TN), # sum mass in grams
-#             TP.MASS.IN = sum(IN.TP),
-#             TSS.MASS.IN = sum(IN.TSS),
-#             TN.MASS.OUT = sum(OUT.TN),
-#             TP.MASS.OUT = sum(OUT.TP),
-#             TSS.MASS.OUT = sum(OUT.TSS)) %>%
-#   transmute(TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
-#             TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / 1000) * n.rain.frac,
-#             TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / 1000) * n.rain.frac,
-#             TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-#             TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-#             TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
-# # View(load2)
+
 
 ## base flow loads
 base.load <- base.corr %>% 
@@ -632,10 +695,44 @@ base.load <- base.corr %>%
 
 # Mass sum
 base.load1 <- base.load %>%
-  transmute(TN.mass.IN = tot.vol * 0.905, # concentrations in mg/L
-            TP.mass.IN = tot.vol * 0.139,
-            TSS.mass.IN = tot.vol * 3.32,
-            TN.mass.OUT = tot.vol * 0.654,
-            TP.mass.OUT = tot.vol * 0.15,
-            TSS.mass.OUT = tot.vol * 2.81)
+  transmute(IN.TKN = tot.vol * 0.7,
+            IN.TAN = tot.vol * 0.09,
+            IN.NO3 = tot.vol * 0.1,
+            IN.ON = tot.vol * 0.6,
+            IN.TN = tot.vol * 0.9,# concentration units mg/L from WQDS Inlet concentration observed
+            IN.OP = tot.vol * 0.09,
+            IN.PBP = tot.vol * 0.04,
+            IN.TP = tot.vol * 0.1, 
+            IN.TSS = tot.vol * 3.3,
+            OUT.TKN = tot.vol * 0.5,
+            OUT.TAN = tot.vol * 0.06,
+            OUT.NO3 = tot.vol * 0.1,
+            OUT.ON = tot.vol * 0.5,
+            OUT.TN = tot.vol * 0.7,# concentration units mg/L from WQDS Inlet concentration observed
+            OUT.OP = tot.vol * 0.1,
+            OUT.PBP = tot.vol * 0.04,
+            OUT.TP = tot.vol * 0.1, 
+            OUT.TSS = tot.vol * 2.8)
 # View(base.load1)
+
+# Annual mass load reduction
+base.load2 <- base.load1 %>%
+    transmute(TKN.m.red = (IN.TKN - OUT.TKN) ,
+            TAN.m.red = (IN.TAN - OUT.TAN),
+            NO3.m.red = (IN.NO3 - OUT.NO3) ,
+            ON.m.red = (IN.ON - OUT.ON),
+            TN.m.red = (IN.TN - OUT.TN),
+            OP.m.red = (IN.OP - OUT.OP),
+            PBP.m.red = (IN.PBP - OUT.PBP),
+            TP.m.red = (IN.TP - OUT.TP),
+            TSS.m.red = (IN.TSS - OUT.TSS),
+            TKN.m.OUT = ((OUT.TKN) / (DA * 1000)),
+            TAN.m.OUT = ((OUT.TAN) / (DA * 1000)),
+            NO3.m.OUT = ((OUT.NO3) / (DA * 1000)),
+            ON.m.OUT = ((OUT.ON) / (DA * 1000)),
+            TN.m.OUT = ((OUT.TN) / (DA * 1000)),
+            OP.m.OUT = ((OUT.OP) / (DA * 1000)),
+            PBP.m.OUT = ((OUT.PBP) / (DA * 1000)),
+            TP.m.OUT = ((OUT.TP) / (DA * 1000)),
+            TSS.m.OUT = ((OUT.TSS) / (DA * 1000)))
+# View(base.load2)
