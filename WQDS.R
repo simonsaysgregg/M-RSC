@@ -825,19 +825,19 @@ wilcox.test(storm.in.PBP$PBP.x, storm.in.PBP$PBP.y, alternative = "g", paired = 
 # 598.295
 
 ## combining inlet concentrations
-# weighted average 0.58 * IN1 + 0.42 * IN2
+# weighted average 0.32 * IN1 + 0.28 * IN2
 in.tot <- left_join(storm.in1,storm.in2, by = "samp.date")
 in.tot <- in.tot %>%
   transmute(samp.date = samp.date,
-            TKN = 0.58 * TKN.x + 0.42 * TKN.y,
-            NOx = 0.58 * NOx.x + 0.42 * NOx.y,
-            NH3N = 0.58 * NH3N.x + 0.42 * NH3N.y,
-            TN = 0.58 * TN.x + 0.42 * TN.y,
-            TP = 0.58 * TP.x + 0.42 * TP.y,
-            OP = 0.58 * OP.x + 0.42 * OP.y,
-            TSS = 0.58 * TSS.x + 0.42 * TSS.y,
-            ON = 0.58 * ON.x + 0.42 * ON.y,
-            PBP = 0.58 * PBP.x + 0.42 * PBP.y)
+            TKN = 0.32 * TKN.x + 0.28 * TKN.y,
+            NOx = 0.32 * NOx.x + 0.28 * NOx.y,
+            NH3N = 0.32 * NH3N.x + 0.28 * NH3N.y,
+            TN = 0.32 * TN.x + 0.28 * TN.y,
+            TP = 0.32 * TP.x + 0.28 * TP.y,
+            OP = 0.32 * OP.x + 0.28 * OP.y,
+            TSS = 0.32 * TSS.x + 0.28 * TSS.y,
+            ON = 0.32 * ON.x + 0.28 * ON.y,
+            PBP = 0.32 * PBP.x + 0.28 * PBP.y)
 # View(in.tot)
 
 ## In/Out wq
@@ -870,23 +870,23 @@ wq.reduc <- tot.wq %>%
             PBP.reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
 # View(wq.reduc)
 # median(wq.reduc$TKN.reduc)
-# returns: 45.4
+# returns: 4.0
 # median(wq.reduc$NOx.reduc)
-# returns: -2.4
+# returns: -77.3
 # median(wq.reduc$NH3N.reduc)
-# returns: 45.0
+# returns: 10.9
 # median(wq.reduc$TN.reduc)
-# returns: 44.8
+# returns: 3.43
 # median(wq.reduc$TP.reduc)
-# returns: 57.8
+# returns: 25.62
 # median(wq.reduc$OP.reduc)
-# returns: 8.9
+# returns: -52.5
 # median(wq.reduc$TSS.reduc)
-# returns: 82.7
+# returns: 69.21
 # median(wq.reduc$ON.reduc)
-# returns: 47.4
+# returns: 7.42
 # median(wq.reduc$PBP.reduc)
-# returns: 64.5
+# returns: 36.98
 
 ## storm flow in/out pollutant testing significance
 # TKN
@@ -895,13 +895,13 @@ wilcox.test(tot.wq$TKN.x, tot.wq$TKN.y, alternative = "t", paired = TRUE, exact 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$TKN.x and tot.wq$TKN.y
-# V = 55, p-value = 0.001953
+# V = 37, p-value = 0.375
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   604.5508 5791.9475
+#   -189.2462 2643.5184
 # sample estimates:
 #   (pseudo)median 
-# 1517.46 
+# 183.7802  
 
 # NOx
 wilcox.test(tot.wq$NOx.x, tot.wq$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -909,13 +909,13 @@ wilcox.test(tot.wq$NOx.x, tot.wq$NOx.y, alternative = "t", paired = TRUE, exact 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$NOx.x and tot.wq$NOx.y
-# V = 24, p-value = 0.7695
+# V = 9, p-value = 0.06445
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -124.8596  241.8786
+#   -306.9928    8.3624
 # sample estimates:
 #   (pseudo)median 
-# -6.1068 
+# -233.998
 
 # TN
 wilcox.test(tot.wq$TN.x, tot.wq$TN.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -923,13 +923,13 @@ wilcox.test(tot.wq$TN.x, tot.wq$TN.y, alternative = "t", paired = TRUE, exact = 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$TN.x and tot.wq$TN.y
-# V = 55, p-value = 0.001953
+# V = 31, p-value = 0.7695
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   798.6541 5644.8062
+#   -368.2368 2303.4728
 # sample estimates:
 #   (pseudo)median 
-# 1622.03
+# 85.227 
 
 # NH3N
 wilcox.test(tot.wq$NH3N.x, tot.wq$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -937,13 +937,13 @@ wilcox.test(tot.wq$NH3N.x, tot.wq$NH3N.y, alternative = "t", paired = TRUE, exac
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$NH3N.x and tot.wq$NH3N.y
-# V = 55, p-value = 0.001953
+# V = 32, p-value = 0.6953
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   55.5924 246.2906
+#   -47.7020  71.6724
 # sample estimates:
 #   (pseudo)median 
-# 109.1586 
+# 12.798 
 
 # TP
 wilcox.test(tot.wq$TP.x, tot.wq$TP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -951,13 +951,13 @@ wilcox.test(tot.wq$TP.x, tot.wq$TP.y, alternative = "t", paired = TRUE, exact = 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$TP.x and tot.wq$TP.y
-# V = 55, p-value = 0.001953
+# V = 46, p-value = 0.06445
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   99.6394 1385.4292
+#   -8.2444 609.9768
 # sample estimates:
 #   (pseudo)median 
-# 353.7463  
+# 93.5092 
 
 # OP
 wilcox.test(tot.wq$OP.x, tot.wq$OP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -965,13 +965,13 @@ wilcox.test(tot.wq$OP.x, tot.wq$OP.y, alternative = "t", paired = TRUE, exact = 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$OP.x and tot.wq$OP.y
-# V = 48, p-value = 0.03711
+# V = 0, p-value = 0.001953
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   2.5177 20.8018
+#   -40.8582 -13.1454
 # sample estimates:
 #   (pseudo)median 
-# 7.689  
+# -24.1256 
 
 # TSS
 wilcox.test(tot.wq$TSS.x, tot.wq$TSS.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -979,13 +979,13 @@ wilcox.test(tot.wq$TSS.x, tot.wq$TSS.y, alternative = "g", paired = TRUE, exact 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$TSS.x and tot.wq$TSS.y
-# V = 55, p-value = 0.0009766
+# V = 54, p-value = 0.001953
 # alternative hypothesis: true location shift is greater than 0
 # 95 percent confidence interval:
-#   103.0155      Inf
+#   43.042    Inf
 # sample estimates:
 #   (pseudo)median 
-# 186.0402
+# 95.0458
 
 # ON
 wilcox.test(tot.wq$ON.x, tot.wq$ON.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -993,13 +993,13 @@ wilcox.test(tot.wq$ON.x, tot.wq$ON.y, alternative = "g", paired = TRUE, exact = 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$ON.x and tot.wq$ON.y
-# V = 55, p-value = 0.0009766
+# V = 38, p-value = 0.1611
 # alternative hypothesis: true location shift is greater than 0
 # 95 percent confidence interval:
-#   735.7842      Inf
+#   -100.2732       Inf
 # sample estimates:
 #   (pseudo)median 
-# 1382.504 
+# 162.5112 
 
 # PBP
 wilcox.test(tot.wq$PBP.x, tot.wq$PBP.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -1007,13 +1007,13 @@ wilcox.test(tot.wq$PBP.x, tot.wq$PBP.y, alternative = "g", paired = TRUE, exact 
 # Wilcoxon signed rank test
 # 
 # data:  tot.wq$PBP.x and tot.wq$PBP.y
-# V = 55, p-value = 0.0009766
+# V = 51, p-value = 0.006836
 # alternative hypothesis: true location shift is greater than 0
 # 95 percent confidence interval:
-#   171.4129      Inf
+#   35.3026     Inf
 # sample estimates:
 #   (pseudo)median 
-# 337.7163 
+# 112.35 
 
 ## Exceedence Probablility
 # Extract from hendersonvill temperature analysis
@@ -1145,6 +1145,10 @@ ggplot(data = TSS.ex)+
 ## Efficiency Ratio v. accumulation regression
 Accumulation <- c(0.71,0.5,1.13,1.01,0.84,0.7,0.77,1.74,0.93,1.65) * 25.4
 tot.wq[,"Accumulation"] <- Accumulation
+
+## WQ summary Statistics 
+# median(tot.wq$Accumulation)
+# range(tot.wq$Accumulation)
 
 ##lm TN
 lmTN <- lm(log(TN.x/TN.y) ~ log(Accumulation), data = tot.wq)
