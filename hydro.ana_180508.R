@@ -646,7 +646,7 @@ load1 <- load[,3:20]
 n.rain.frac <- 1169.1632 / sum(load$Accumulation) 
 # drainage area (ha)
 DA <- 20.3
-# Annual mass load reduction
+# Annual percent load reduction + export
 load2 <- load1 %>%
   summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in grams
             TAN.MASS.IN = sum(IN.TAN),
@@ -666,15 +666,15 @@ load2 <- load1 %>%
             PBP.MASS.OUT = sum(OUT.PBP),
             TP.MASS.OUT = sum(OUT.TP),
             TSS.MASS.OUT = sum(OUT.TSS)) %>%
-  transmute(TKN.m.red = ((TKN.MASS.IN - TKN.MASS.OUT)  / 1000) * n.rain.frac,
-            TAN.m.red = ((TAN.MASS.IN - TAN.MASS.OUT)  / 1000) * n.rain.frac,
-            NO3.m.red = ((NO3.MASS.IN - NO3.MASS.OUT)  / 1000) * n.rain.frac,
-            ON.m.red = ((ON.MASS.IN - ON.MASS.OUT)  / 1000) * n.rain.frac,
-            TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / 1000) * n.rain.frac,
-            OP.m.red = ((OP.MASS.IN - OP.MASS.OUT)  / 1000) * n.rain.frac,
-            PBP.m.red = ((PBP.MASS.IN - PBP.MASS.OUT)  / 1000) * n.rain.frac,
-            TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / 1000) * n.rain.frac,
-            TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / 1000) * n.rain.frac,
+  transmute(TKN.m.red = ((TKN.MASS.IN - TKN.MASS.OUT)  / TKN.MASS.IN) * 100,
+            TAN.m.red = ((TAN.MASS.IN - TAN.MASS.OUT)  / TAN.MASS.IN) * 100,
+            NO3.m.red = ((NO3.MASS.IN - NO3.MASS.OUT)  / NO3.MASS.IN) * 100,
+            ON.m.red = ((ON.MASS.IN - ON.MASS.OUT)  / ON.MASS.IN) * 100,
+            TN.m.red = ((TN.MASS.IN - TN.MASS.OUT)  / TN.MASS.IN) * 100,
+            OP.m.red = ((OP.MASS.IN - OP.MASS.OUT)  / OP.MASS.IN) * 100,
+            PBP.m.red = ((PBP.MASS.IN - PBP.MASS.OUT)  / PBP.MASS.IN) * 100,
+            TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / TP.MASS.IN) * 100,
+            TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / TSS.MASS.IN) * 100,
             TKN.m.OUT = ((TKN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
             TAN.m.OUT = ((TAN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
             NO3.m.OUT = ((NO3.MASS.OUT) / (DA * 1000)) * n.rain.frac,
@@ -686,6 +686,45 @@ load2 <- load1 %>%
             TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
 # View(load2)
 
+# Annual Mass load reduction
+load3 <- load1 %>%
+  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in grams
+            TAN.MASS.IN = sum(IN.TAN),
+            NO3.MASS.IN = sum(IN.NO3),
+            ON.MASS.IN = sum(IN.ON),
+            TN.MASS.IN = sum(IN.TN),
+            OP.MASS.IN = sum(IN.OP),
+            PBP.MASS.IN = sum(IN.PBP),
+            TP.MASS.IN = sum(IN.TP),
+            TSS.MASS.IN = sum(IN.TSS),
+            TKN.MASS.OUT = sum(OUT.TKN),
+            TAN.MASS.OUT = sum(OUT.TAN),
+            NO3.MASS.OUT = sum(OUT.NO3),
+            ON.MASS.OUT = sum(OUT.ON),
+            TN.MASS.OUT = sum(OUT.TN),
+            OP.MASS.OUT = sum(OUT.OP),
+            PBP.MASS.OUT = sum(OUT.PBP),
+            TP.MASS.OUT = sum(OUT.TP),
+            TSS.MASS.OUT = sum(OUT.TSS)) %>%
+  transmute(TKN.m.red.in = ((TKN.MASS.IN)  / 1000) * n.rain.frac,
+            TKN.m.red.out = ((TKN.MASS.OUT)  / 1000) * n.rain.frac,
+            TAN.m.red.in = ((TAN.MASS.IN)  / 1000) * n.rain.frac,
+            TAN.m.red.out = ((TAN.MASS.OUT)  / 1000) * n.rain.frac,
+            NO3.m.red.in = ((NO3.MASS.IN)  / 1000) * n.rain.frac,
+            NO3.m.red.out = ((NO3.MASS.OUT)  / 1000) * n.rain.frac,
+            ON.m.red.in = ((ON.MASS.IN)  / 1000) * n.rain.frac,
+            ON.m.red.out = ((ON.MASS.OUT)  / 1000) * n.rain.frac,
+            TN.m.red.in = ((TN.MASS.IN)  / 1000) * n.rain.frac,
+            TN.m.red.out = ((TN.MASS.OUT)  / 1000) * n.rain.frac,
+            OP.m.red.in = ((OP.MASS.IN)  / 1000) * n.rain.frac,
+            OP.m.red.out = ((OP.MASS.OUT)  / 1000) * n.rain.frac,
+            PBP.m.red.in = ((PBP.MASS.OUT)  / 1000) * n.rain.frac,
+            PBP.m.red.out = ((PBP.MASS.IN - PBP.MASS.OUT)  / 1000) * n.rain.frac,
+            TP.m.red.in = ((TP.MASS.IN)  / 1000) * n.rain.frac,
+            TP.m.red.out = ((TP.MASS.OUT)  / 1000) * n.rain.frac,
+            TSS.m.red.in = ((TSS.MASS.IN)  / 1000) * n.rain.frac,
+            TSS.m.red.out = ((TSS.MASS.OUT)  / 1000) * n.rain.frac)
+# View(load3)
 
 ## base flow loads
 base.load <- base.corr %>% 
@@ -715,17 +754,17 @@ base.load1 <- base.load %>%
             OUT.TSS = tot.vol * 2.8)
 # View(base.load1)
 
-# Annual mass load reduction
+# Annual percent load reduction + mass export
 base.load2 <- base.load1 %>%
-    transmute(TKN.m.red = (IN.TKN - OUT.TKN) ,
-            TAN.m.red = (IN.TAN - OUT.TAN),
-            NO3.m.red = (IN.NO3 - OUT.NO3) ,
-            ON.m.red = (IN.ON - OUT.ON),
-            TN.m.red = (IN.TN - OUT.TN),
-            OP.m.red = (IN.OP - OUT.OP),
-            PBP.m.red = (IN.PBP - OUT.PBP),
-            TP.m.red = (IN.TP - OUT.TP),
-            TSS.m.red = (IN.TSS - OUT.TSS),
+    transmute(TKN.m.red = ((IN.TKN - OUT.TKN) / IN.TKN) * 100 ,
+            TAN.m.red = ((IN.TAN - OUT.TAN) / IN.TAN) * 100,
+            NO3.m.red = ((IN.NO3 - OUT.NO3) / IN.NO3) * 100 ,
+            ON.m.red = ((IN.ON - OUT.ON) / IN.ON) * 100 ,
+            TN.m.red = ((IN.TN - OUT.TN) / IN.TN) * 100,
+            OP.m.red = ((IN.OP - OUT.OP) / IN.OP) * 100,
+            PBP.m.red = ((IN.PBP - OUT.PBP) / IN.PBP) * 100,
+            TP.m.red = ((IN.TP - OUT.TP) / IN.TP) * 100,
+            TSS.m.red = ((IN.TSS - OUT.TSS) / IN.TSS) * 100,
             TKN.m.OUT = ((OUT.TKN) / (DA * 1000)),
             TAN.m.OUT = ((OUT.TAN) / (DA * 1000)),
             NO3.m.OUT = ((OUT.NO3) / (DA * 1000)),
@@ -736,3 +775,177 @@ base.load2 <- base.load1 %>%
             TP.m.OUT = ((OUT.TP) / (DA * 1000)),
             TSS.m.OUT = ((OUT.TSS) / (DA * 1000)))
 # View(base.load2)
+
+## annual baseflow mass load reduction
+base.load3 <- base.load1 %>%
+  transmute(TKN.m.red.in = ((IN.TKN) / 1000) ,
+            TKN.m.red.out = ((OUT.TKN) / 1000) ,
+            TAN.m.red.in = ((IN.TAN) / 1000),
+            TAN.m.red.out = ((OUT.TAN) / 1000),
+            NO3.m.red.in = ((IN.NO3) / 1000) ,
+            NO3.m.red.out = ((OUT.NO3) / 1000) ,
+            ON.m.red.in = ((IN.ON) / 1000) ,
+            ON.m.red.out = ((OUT.ON) / 1000) ,
+            TN.m.red.in = ((IN.TN) / 1000),
+            TN.m.red.out = ((OUT.TN) / 1000),
+            OP.m.red.in = ((IN.OP) / 1000),
+            OP.m.red.out = ((OUT.OP) / 1000),
+            PBP.m.red.in = ((IN.PBP) / 1000),
+            PBP.m.red.out = ((OUT.PBP) / 1000),
+            TP.m.red.in = ((IN.TP) / 1000),
+            TP.m.red.out = ((OUT.TP) / 1000),
+            TSS.m.red.in = ((IN.TSS) / 1000),
+            TSS.m.red.out = ((OUT.TSS) / 1000))
+# View(base.load3)
+
+## Total mass load reduction
+tot.LR <- load3 %>%
+  transmute(TKN = (((TKN.m.red.in + base.load3$TKN.m.red.in) - (TKN.m.red.out + base.load3$TKN.m.red.out)) / (TKN.m.red.in + base.load3$TKN.m.red.in)) * 100,
+            TAN = (((TAN.m.red.in + base.load3$TAN.m.red.in) - (TAN.m.red.out + base.load3$TAN.m.red.out)) / (TAN.m.red.in + base.load3$TAN.m.red.in)) * 100,
+            NO3 = (((NO3.m.red.in + base.load3$NO3.m.red.in) - (NO3.m.red.out + base.load3$NO3.m.red.out)) / (NO3.m.red.in + base.load3$NO3.m.red.in)) * 100,
+            ON = (((ON.m.red.in + base.load3$ON.m.red.in) - (ON.m.red.out + base.load3$ON.m.red.out)) / (ON.m.red.in + base.load3$ON.m.red.in)) * 100,
+            TN = (((TN.m.red.in + base.load3$TN.m.red.in) - (TN.m.red.out + base.load3$TN.m.red.out)) / (TN.m.red.in + base.load3$TN.m.red.in)) * 100,
+            OP = (((OP.m.red.in + base.load3$OP.m.red.in) - (OP.m.red.out + base.load3$OP.m.red.out)) / (OP.m.red.in + base.load3$OP.m.red.in)) * 100,
+            PBP = (((PBP.m.red.in + base.load3$PBP.m.red.in) - (PBP.m.red.out + base.load3$PBP.m.red.out)) / (PBP.m.red.in + base.load3$PBP.m.red.in)) * 100,
+            TP = (((TP.m.red.in + base.load3$TP.m.red.in) - (TP.m.red.out + base.load3$TP.m.red.out)) / (TP.m.red.in + base.load3$TP.m.red.in)) * 100,
+            TSS = (((TSS.m.red.in + base.load3$TSS.m.red.in) - (TSS.m.red.out + base.load3$TSS.m.red.out)) / (TSS.m.red.in + base.load3$TSS.m.red.in)) * 100)
+# View(tot.LR)
+
+## Total mass export
+tot.EE <- load2 %>%
+  select(ends_with(".OUT"))
+tot.BE <- base.load2 %>%
+  select(ends_with(".OUT"))
+tot.E <- tot.EE %>%
+  transmute(TKN = TKN.m.OUT + tot.BE$TKN.m.OUT,
+            TAN = TAN.m.OUT + tot.BE$TAN.m.OUT,
+            NO3 = NO3.m.OUT + tot.BE$NO3.m.OUT,
+            ON = ON.m.OUT + tot.BE$ON.m.OUT,
+            TN = TN.m.OUT + tot.BE$TN.m.OUT,
+            OP = OP.m.OUT + tot.BE$OP.m.OUT,
+            PBP = PBP.m.OUT + tot.BE$PBP.m.OUT,
+            TP = TP.m.OUT + tot.BE$TP.m.OUT,
+            TSS = TSS.m.OUT + tot.BE$TSS.m.OUT)
+# View(tot.E)
+
+## significance in load analysis
+# event load reductions
+# TKN
+wilcox.test(load$IN.TKN, load$OUT.TKN, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.TKN and load$OUT.TKN
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   2317.546 3862.316
+# sample estimates:
+#   (pseudo)median 
+# 2973.19
+
+# TAN
+wilcox.test(load$IN.TAN, load$OUT.TAN, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.TAN and load$OUT.TAN
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   579.3865 965.5790
+# sample estimates:
+#   (pseudo)median 
+# 743.2976
+
+# NO3
+wilcox.test(load$IN.NO3, load$OUT.NO3, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.NO3 and load$OUT.NO3
+# V = 0, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   -5793.474 -3476.319
+# sample estimates:
+#   (pseudo)median 
+# -4459.786 
+
+# ON
+wilcox.test(load$IN.ON, load$OUT.ON, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.ON and load$OUT.ON
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   3476.319 5793.474
+# sample estimates:
+#   (pseudo)median 
+# 4459.786 
+
+# TN
+wilcox.test(load$IN.TN, load$OUT.TN, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# NaN
+
+# OP
+wilcox.test(load$IN.OP, load$OUT.OP, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns:
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.OP and load$OUT.OP
+# V = 0, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   -386.2316 -231.7546
+# sample estimates:
+#   (pseudo)median 
+# -297.319 
+
+# PBP
+wilcox.test(load$IN.PBP, load$OUT.PBP, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns:
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.PBP and load$OUT.PBP
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   2317.546 3862.316
+# sample estimates:
+#   (pseudo)median 
+# 2973.19
+
+# TP
+wilcox.test(load$IN.TP, load$OUT.TP, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns:
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.TP and load$OUT.TP
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   1158.773 1931.158
+# sample estimates:
+#   (pseudo)median 
+# 1486.595
+
+
+# TSS
+wilcox.test(load$IN.TSS, load$OUT.TSS, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+# returns
+# Wilcoxon signed rank test
+# 
+# data:  load$IN.TSS and load$OUT.TSS
+# V = 120, p-value = 6.104e-05
+# alternative hypothesis: true location shift is not equal to 0
+# 95 percent confidence interval:
+#   908478.1 1514027.9
+# sample estimates:
+#   (pseudo)median 
+# 1165491
+
+
