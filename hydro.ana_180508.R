@@ -619,24 +619,24 @@ ggplot(base.bal)+
 load <- hydr.ana %>%
   select(insum,  # insum in m^3
          Accumulation) %>%
-  mutate(IN.TKN = (as.numeric(insum) * 1.6),
-         IN.TAN = (as.numeric(insum) * 0.15),
-         IN.NO3 = (as.numeric(insum) * 0.3),
-         IN.ON = (as.numeric(insum) * 1.5),
-         IN.TN = (as.numeric(insum) * 2.0),# concentration units mg/L from WQDS Inlet concentration observed
-         IN.OP = (as.numeric(insum) * 0.05),
-         IN.PBP = (as.numeric(insum) * 0.3),
-         IN.TP = (as.numeric(insum) * 0.3), 
-         IN.TSS = (as.numeric(insum) * 116.3),
-         OUT.TKN = (as.numeric(insum) * 1.4),
-         OUT.TAN = (as.numeric(insum) * 0.1),
-         OUT.NO3 = (as.numeric(insum) * 0.6),
-         OUT.ON = (as.numeric(insum) * 1.2),
-         OUT.TN = (as.numeric(insum) * 2.0),# concentration units mg/L from WQDS Inlet concentration observed
-         OUT.OP = (as.numeric(insum) * 0.07),
-         OUT.PBP = (as.numeric(insum) * 0.1),
-         OUT.TP = (as.numeric(insum) * 0.2), 
-         OUT.TSS = (as.numeric(insum) * 37.9)) 
+  mutate(IN.TKN = (as.numeric(insum) * 1.6) / 1000,
+         IN.TAN = (as.numeric(insum) * 0.15) / 1000,
+         IN.NO3 = (as.numeric(insum) * 0.3) / 1000,
+         IN.ON = (as.numeric(insum) * 1.5) / 1000,
+         IN.TN = (as.numeric(insum) * 2.0) / 1000,# concentration units mg/L from WQDS Inlet concentration observed
+         IN.OP = (as.numeric(insum) * 0.05) / 1000,
+         IN.PBP = (as.numeric(insum) * 0.3) / 1000,
+         IN.TP = (as.numeric(insum) * 0.3) / 1000, 
+         IN.TSS = (as.numeric(insum) * 116.3) / 1000,
+         OUT.TKN = (as.numeric(insum) * 1.4) / 1000,
+         OUT.TAN = (as.numeric(insum) * 0.1) / 1000,
+         OUT.NO3 = (as.numeric(insum) * 0.6) / 1000,
+         OUT.ON = (as.numeric(insum) * 1.2) / 1000,
+         OUT.TN = (as.numeric(insum) * 2.0) / 1000,# concentration units mg/L from WQDS Inlet concentration observed
+         OUT.OP = (as.numeric(insum) * 0.07) / 1000,
+         OUT.PBP = (as.numeric(insum) * 0.1) / 1000,
+         OUT.TP = (as.numeric(insum) * 0.2) / 1000, 
+         OUT.TSS = (as.numeric(insum) * 37.9) / 1000) 
 # View(load)
 
 ## Annual Loads
@@ -648,7 +648,7 @@ n.rain.frac <- 1169.1632 / sum(load$Accumulation)
 DA <- 20.3
 # Annual percent load reduction + export
 load2 <- load1 %>%
-  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in grams
+  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in kgrams
             TAN.MASS.IN = sum(IN.TAN),
             NO3.MASS.IN = sum(IN.NO3),
             ON.MASS.IN = sum(IN.ON),
@@ -675,20 +675,20 @@ load2 <- load1 %>%
             PBP.m.red = ((PBP.MASS.IN - PBP.MASS.OUT)  / PBP.MASS.IN) * 100,
             TP.m.red = ((TP.MASS.IN - TP.MASS.OUT)  / TP.MASS.IN) * 100,
             TSS.m.red = ((TSS.MASS.IN - TSS.MASS.OUT)  / TSS.MASS.IN) * 100,
-            TKN.m.OUT = ((TKN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            TAN.m.OUT = ((TAN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            NO3.m.OUT = ((NO3.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            ON.m.OUT = ((ON.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            TN.m.OUT = ((TN.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            OP.m.OUT = ((OP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            PBP.m.OUT = ((PBP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            TP.m.OUT = ((TP.MASS.OUT) / (DA * 1000)) * n.rain.frac,
-            TSS.m.OUT = ((TSS.MASS.OUT) / (DA * 1000)) * n.rain.frac)
+            TKN.m.OUT = ((TKN.MASS.OUT) / (DA )) * n.rain.frac,
+            TAN.m.OUT = ((TAN.MASS.OUT) / (DA )) * n.rain.frac,
+            NO3.m.OUT = ((NO3.MASS.OUT) / (DA )) * n.rain.frac,
+            ON.m.OUT = ((ON.MASS.OUT) / (DA )) * n.rain.frac,
+            TN.m.OUT = ((TN.MASS.OUT) / (DA )) * n.rain.frac,
+            OP.m.OUT = ((OP.MASS.OUT) / (DA )) * n.rain.frac,
+            PBP.m.OUT = ((PBP.MASS.OUT) / (DA )) * n.rain.frac,
+            TP.m.OUT = ((TP.MASS.OUT) / (DA )) * n.rain.frac,
+            TSS.m.OUT = ((TSS.MASS.OUT) / (DA)) * n.rain.frac)
 # View(load2)
 
 # Annual Mass load reduction
 load3 <- load1 %>%
-  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in grams
+  summarise(TKN.MASS.IN = sum(IN.TKN), # sum mass in kgrams
             TAN.MASS.IN = sum(IN.TAN),
             NO3.MASS.IN = sum(IN.NO3),
             ON.MASS.IN = sum(IN.ON),
@@ -706,24 +706,24 @@ load3 <- load1 %>%
             PBP.MASS.OUT = sum(OUT.PBP),
             TP.MASS.OUT = sum(OUT.TP),
             TSS.MASS.OUT = sum(OUT.TSS)) %>%
-  transmute(TKN.m.red.in = ((TKN.MASS.IN)  / 1000) * n.rain.frac,
-            TKN.m.red.out = ((TKN.MASS.OUT)  / 1000) * n.rain.frac,
-            TAN.m.red.in = ((TAN.MASS.IN)  / 1000) * n.rain.frac,
-            TAN.m.red.out = ((TAN.MASS.OUT)  / 1000) * n.rain.frac,
-            NO3.m.red.in = ((NO3.MASS.IN)  / 1000) * n.rain.frac,
-            NO3.m.red.out = ((NO3.MASS.OUT)  / 1000) * n.rain.frac,
-            ON.m.red.in = ((ON.MASS.IN)  / 1000) * n.rain.frac,
-            ON.m.red.out = ((ON.MASS.OUT)  / 1000) * n.rain.frac,
-            TN.m.red.in = ((TN.MASS.IN)  / 1000) * n.rain.frac,
-            TN.m.red.out = ((TN.MASS.OUT)  / 1000) * n.rain.frac,
-            OP.m.red.in = ((OP.MASS.IN)  / 1000) * n.rain.frac,
-            OP.m.red.out = ((OP.MASS.OUT)  / 1000) * n.rain.frac,
-            PBP.m.red.in = ((PBP.MASS.OUT)  / 1000) * n.rain.frac,
-            PBP.m.red.out = ((PBP.MASS.IN - PBP.MASS.OUT)  / 1000) * n.rain.frac,
-            TP.m.red.in = ((TP.MASS.IN)  / 1000) * n.rain.frac,
-            TP.m.red.out = ((TP.MASS.OUT)  / 1000) * n.rain.frac,
-            TSS.m.red.in = ((TSS.MASS.IN)  / 1000) * n.rain.frac,
-            TSS.m.red.out = ((TSS.MASS.OUT)  / 1000) * n.rain.frac)
+  transmute(TKN.m.red.in = ((TKN.MASS.IN)) * n.rain.frac,
+            TKN.m.red.out = ((TKN.MASS.OUT)) * n.rain.frac,
+            TAN.m.red.in = ((TAN.MASS.IN)  ) * n.rain.frac,
+            TAN.m.red.out = ((TAN.MASS.OUT) ) * n.rain.frac,
+            NO3.m.red.in = ((NO3.MASS.IN)  ) * n.rain.frac,
+            NO3.m.red.out = ((NO3.MASS.OUT) ) * n.rain.frac,
+            ON.m.red.in = ((ON.MASS.IN)  ) * n.rain.frac,
+            ON.m.red.out = ((ON.MASS.OUT)) * n.rain.frac,
+            TN.m.red.in = ((TN.MASS.IN) ) * n.rain.frac,
+            TN.m.red.out = ((TN.MASS.OUT) ) * n.rain.frac,
+            OP.m.red.in = ((OP.MASS.IN)  ) * n.rain.frac,
+            OP.m.red.out = ((OP.MASS.OUT)  ) * n.rain.frac,
+            PBP.m.red.in = ((PBP.MASS.IN)) * n.rain.frac,
+            PBP.m.red.out = ((PBP.MASS.OUT)) * n.rain.frac,
+            TP.m.red.in = ((TP.MASS.IN) ) * n.rain.frac,
+            TP.m.red.out = ((TP.MASS.OUT) ) * n.rain.frac,
+            TSS.m.red.in = ((TSS.MASS.IN) ) * n.rain.frac,
+            TSS.m.red.out = ((TSS.MASS.OUT)) * n.rain.frac)
 # View(load3)
 
 ## base flow loads
@@ -734,24 +734,24 @@ base.load <- base.corr %>%
 
 # Mass sum
 base.load1 <- base.load %>%
-  transmute(IN.TKN = tot.vol * 0.7,
-            IN.TAN = tot.vol * 0.09,
-            IN.NO3 = tot.vol * 0.1,
-            IN.ON = tot.vol * 0.6,
-            IN.TN = tot.vol * 0.9,# concentration units mg/L from WQDS Inlet concentration observed
-            IN.OP = tot.vol * 0.09,
-            IN.PBP = tot.vol * 0.04,
-            IN.TP = tot.vol * 0.1, 
-            IN.TSS = tot.vol * 3.3,
-            OUT.TKN = tot.vol * 0.5,
-            OUT.TAN = tot.vol * 0.06,
-            OUT.NO3 = tot.vol * 0.1,
-            OUT.ON = tot.vol * 0.5,
-            OUT.TN = tot.vol * 0.7,# concentration units mg/L from WQDS Inlet concentration observed
-            OUT.OP = tot.vol * 0.1,
-            OUT.PBP = tot.vol * 0.04,
-            OUT.TP = tot.vol * 0.1, 
-            OUT.TSS = tot.vol * 2.8)
+  transmute(IN.TKN = tot.vol * 0.7 / 1000,
+            IN.TAN = tot.vol * 0.09 / 1000,
+            IN.NO3 = tot.vol * 0.1 / 1000,
+            IN.ON = tot.vol * 0.6 / 1000,
+            IN.TN = tot.vol * 0.9 / 1000,# concentration units mg/L from WQDS Inlet concentration observed
+            IN.OP = tot.vol * 0.09 / 1000,
+            IN.PBP = tot.vol * 0.04 / 1000,
+            IN.TP = tot.vol * 0.1 / 1000, 
+            IN.TSS = tot.vol * 3.3 / 1000,
+            OUT.TKN = tot.vol * 0.5 / 1000,
+            OUT.TAN = tot.vol * 0.06 / 1000,
+            OUT.NO3 = tot.vol * 0.1 / 1000,
+            OUT.ON = tot.vol * 0.5 / 1000,
+            OUT.TN = tot.vol * 0.7 / 1000,# concentration units mg/L from WQDS Inlet concentration observed
+            OUT.OP = tot.vol * 0.1 / 1000,
+            OUT.PBP = tot.vol * 0.04 / 1000,
+            OUT.TP = tot.vol * 0.1 / 1000, 
+            OUT.TSS = tot.vol * 2.8 / 1000)
 # View(base.load1)
 
 # Annual percent load reduction + mass export
@@ -765,37 +765,37 @@ base.load2 <- base.load1 %>%
             PBP.m.red = ((IN.PBP - OUT.PBP) / IN.PBP) * 100,
             TP.m.red = ((IN.TP - OUT.TP) / IN.TP) * 100,
             TSS.m.red = ((IN.TSS - OUT.TSS) / IN.TSS) * 100,
-            TKN.m.OUT = ((OUT.TKN) / (DA * 1000)),
-            TAN.m.OUT = ((OUT.TAN) / (DA * 1000)),
-            NO3.m.OUT = ((OUT.NO3) / (DA * 1000)),
-            ON.m.OUT = ((OUT.ON) / (DA * 1000)),
-            TN.m.OUT = ((OUT.TN) / (DA * 1000)),
-            OP.m.OUT = ((OUT.OP) / (DA * 1000)),
-            PBP.m.OUT = ((OUT.PBP) / (DA * 1000)),
-            TP.m.OUT = ((OUT.TP) / (DA * 1000)),
-            TSS.m.OUT = ((OUT.TSS) / (DA * 1000)))
+            TKN.m.OUT = ((OUT.TKN) / (DA )),
+            TAN.m.OUT = ((OUT.TAN) / (DA )),
+            NO3.m.OUT = ((OUT.NO3) / (DA )),
+            ON.m.OUT = ((OUT.ON) / (DA )),
+            TN.m.OUT = ((OUT.TN) / (DA )),
+            OP.m.OUT = ((OUT.OP) / (DA )),
+            PBP.m.OUT = ((OUT.PBP) / (DA )),
+            TP.m.OUT = ((OUT.TP) / (DA )),
+            TSS.m.OUT = ((OUT.TSS) / (DA)))
 # View(base.load2)
 
 ## annual baseflow mass load reduction
 base.load3 <- base.load1 %>%
-  transmute(TKN.m.red.in = ((IN.TKN) / 1000) ,
-            TKN.m.red.out = ((OUT.TKN) / 1000) ,
-            TAN.m.red.in = ((IN.TAN) / 1000),
-            TAN.m.red.out = ((OUT.TAN) / 1000),
-            NO3.m.red.in = ((IN.NO3) / 1000) ,
-            NO3.m.red.out = ((OUT.NO3) / 1000) ,
-            ON.m.red.in = ((IN.ON) / 1000) ,
-            ON.m.red.out = ((OUT.ON) / 1000) ,
-            TN.m.red.in = ((IN.TN) / 1000),
-            TN.m.red.out = ((OUT.TN) / 1000),
-            OP.m.red.in = ((IN.OP) / 1000),
-            OP.m.red.out = ((OUT.OP) / 1000),
-            PBP.m.red.in = ((IN.PBP) / 1000),
-            PBP.m.red.out = ((OUT.PBP) / 1000),
-            TP.m.red.in = ((IN.TP) / 1000),
-            TP.m.red.out = ((OUT.TP) / 1000),
-            TSS.m.red.in = ((IN.TSS) / 1000),
-            TSS.m.red.out = ((OUT.TSS) / 1000))
+  transmute(TKN.m.red.in = ((IN.TKN) ) ,
+            TKN.m.red.out = ((OUT.TKN) ) ,
+            TAN.m.red.in = ((IN.TAN) ),
+            TAN.m.red.out = ((OUT.TAN) ),
+            NO3.m.red.in = ((IN.NO3) ) ,
+            NO3.m.red.out = ((OUT.NO3) ) ,
+            ON.m.red.in = ((IN.ON) ) ,
+            ON.m.red.out = ((OUT.ON) ) ,
+            TN.m.red.in = ((IN.TN) ),
+            TN.m.red.out = ((OUT.TN) ),
+            OP.m.red.in = ((IN.OP) ),
+            OP.m.red.out = ((OUT.OP) ),
+            PBP.m.red.in = ((IN.PBP) ),
+            PBP.m.red.out = ((OUT.PBP) ),
+            TP.m.red.in = ((IN.TP)),
+            TP.m.red.out = ((OUT.TP) ),
+            TSS.m.red.in = ((IN.TSS) ),
+            TSS.m.red.out = ((OUT.TSS) ))
 # View(base.load3)
 
 ## Total mass load reduction
@@ -836,13 +836,13 @@ wilcox.test(load$IN.TKN, load$OUT.TKN, alternative = "t", paired = TRUE, exact =
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.TKN and load$OUT.TKN
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   2317.546 3862.316
+#   2.357077 3.708090
 # sample estimates:
 #   (pseudo)median 
-# 2973.19
+# 3.005374 
 
 # TAN
 wilcox.test(load$IN.TAN, load$OUT.TAN, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -850,13 +850,13 @@ wilcox.test(load$IN.TAN, load$OUT.TAN, alternative = "t", paired = TRUE, exact =
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.TAN and load$OUT.TAN
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   579.3865 965.5790
+#   0.5892693 0.9270226
 # sample estimates:
 #   (pseudo)median 
-# 743.2976
+# 0.7513434
 
 # NO3
 wilcox.test(load$IN.NO3, load$OUT.NO3, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -864,13 +864,13 @@ wilcox.test(load$IN.NO3, load$OUT.NO3, alternative = "t", paired = TRUE, exact =
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.NO3 and load$OUT.NO3
-# V = 0, p-value = 6.104e-05
+# V = 0, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -5793.474 -3476.319
+#   -5.562136 -3.535616
 # sample estimates:
 #   (pseudo)median 
-# -4459.786 
+# -4.50806 
 
 # ON
 wilcox.test(load$IN.ON, load$OUT.ON, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -878,13 +878,13 @@ wilcox.test(load$IN.ON, load$OUT.ON, alternative = "t", paired = TRUE, exact = T
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.ON and load$OUT.ON
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   3476.319 5793.474
+#   3.535616 5.562136
 # sample estimates:
 #   (pseudo)median 
-# 4459.786 
+# 4.50806  
 
 # TN
 wilcox.test(load$IN.TN, load$OUT.TN, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -897,13 +897,13 @@ wilcox.test(load$IN.OP, load$OUT.OP, alternative = "t", paired = TRUE, exact = T
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.OP and load$OUT.OP
-# V = 0, p-value = 6.104e-05
+# V = 0, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -386.2316 -231.7546
+#   -0.3708090 -0.2357077
 # sample estimates:
 #   (pseudo)median 
-# -297.319 
+# -0.3005374
 
 # PBP
 wilcox.test(load$IN.PBP, load$OUT.PBP, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -911,13 +911,13 @@ wilcox.test(load$IN.PBP, load$OUT.PBP, alternative = "t", paired = TRUE, exact =
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.PBP and load$OUT.PBP
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   2317.546 3862.316
+#   2.357077 3.708090
 # sample estimates:
 #   (pseudo)median 
-# 2973.19
+# 3.005374 
 
 # TP
 wilcox.test(load$IN.TP, load$OUT.TP, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -925,13 +925,13 @@ wilcox.test(load$IN.TP, load$OUT.TP, alternative = "t", paired = TRUE, exact = T
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.TP and load$OUT.TP
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   1158.773 1931.158
+#   1.178539 1.854045
 # sample estimates:
 #   (pseudo)median 
-# 1486.595
+# 1.502687
 
 
 # TSS
@@ -940,12 +940,12 @@ wilcox.test(load$IN.TSS, load$OUT.TSS, alternative = "t", paired = TRUE, exact =
 # Wilcoxon signed rank test
 # 
 # data:  load$IN.TSS and load$OUT.TSS
-# V = 120, p-value = 6.104e-05
+# V = 210, p-value = 1.907e-06
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   908478.1 1514027.9
+#   923.9743 1453.5715
 # sample estimates:
 #   (pseudo)median 
-# 1165491
+# 1178.106 
 
 
