@@ -1136,7 +1136,7 @@ ggplot(data = TSS.ex)+
   geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TSS"))+
   geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TSS"))+ 
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
-  geom_hline(aes(yintercept = 4.0, color = "Good/Fair WQ"))+
+  geom_hline(aes(yintercept = 5.0, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
@@ -1167,6 +1167,13 @@ lmTSS <- lm(log(TSS.x/TSS.y) ~ log(Accumulation), data = tot.wq)
 summary(lmTSS)
 par(mfrow=c(2,2))
 plot(lmTSS)
+
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(TSS.x/TSS.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 ## Accumulation v. concentration regression
 ##lm TN
