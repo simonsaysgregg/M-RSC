@@ -1136,7 +1136,7 @@ ggplot(data = TSS.ex)+
   geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TSS"))+
   geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TSS"))+ 
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
-  geom_hline(aes(yintercept = 5.0, color = "Good/Fair WQ"))+
+  geom_hline(aes(yintercept = 25.0, color = "TSS Target"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
@@ -1155,12 +1155,26 @@ lmTN <- lm(log(TN.x/TN.y) ~ log(Accumulation), data = tot.wq)
 summary(lmTN)
 par(mfrow=c(2,2))
 plot(lmTN)
+
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(TN.x/TN.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
  
 ##lm TP
 lmTP <- lm(log(TP.x/TP.y) ~ log(Accumulation), data = tot.wq)
 summary(lmTP)
 par(mfrow=c(2,2))
 plot(lmTP)
+
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(TP.x/TP.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 ##lm TSS
 lmTSS <- lm(log(TSS.x/TSS.y) ~ log(Accumulation), data = tot.wq)
@@ -1175,10 +1189,5 @@ ggplot(tot.wq, aes(x = log(Accumulation), y = log(TSS.x/TSS.y)))+
   labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
-## Accumulation v. concentration regression
-##lm TN
-lmTN.in <- lm(log(TN.x) ~ log(Accumulation), data = tot.wq)
-summary(lmTN.in)
-par(mfrow=c(2,2))
-plot(lmTN.in)
+
 
