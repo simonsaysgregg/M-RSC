@@ -1189,5 +1189,42 @@ ggplot(tot.wq, aes(x = log(Accumulation), y = log(TSS.x/TSS.y)))+
   labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+##lm PBP
+lmPBP <- lm(log(PBP.x/PBP.y) ~ log(Accumulation), data = tot.wq)
+summary(lmPBP)
+par(mfrow=c(2,2))
+plot(lmPBP)
 
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(PBP.x/PBP.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+##lm TKN
+lmTKN <- lm(log(TKN.x/TKN.y) ~ log(Accumulation), data = tot.wq)
+summary(lmTKN)
+par(mfrow=c(2,2))
+plot(lmTKN)
+
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(TKN.x/TKN.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+##lm ON
+lmON <- lm(log(ON.x/ON.y) ~ log(Accumulation), data = tot.wq)
+summary(lmON)
+par(mfrow=c(2,2))
+plot(lmON)
+
+## scatter plot of final model
+ggplot(tot.wq, aes(x = log(Accumulation), y = log(ON.x/ON.y)))+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
+  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
