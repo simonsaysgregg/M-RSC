@@ -266,11 +266,29 @@ Rainsum <- RainEvents %>%
 
 ## Summarise rainfall info
 Rainfall_event.summary <- (Rainsum[-1, ]) %>%
-  select(Duration,
+  select(start,
+         Duration,
          Accumulation,
-         max.intensity5) %>%
-  summarise_all(funs(median, min, max), na.rm = TRUE) 
+         max.intensity5)
 # View(Rainfall_event.summary)
+autum <- Rainfall_event.summary %>%
+  subset(start >= "2017-09-22" & start <= "2018-03-20") %>% 
+  summarise(rainfall_sum = sum(Accumulation, na.rm = TRUE)) 
+# View(autum)
+sum1 <- Rainfall_event.summary %>%
+  subset(start <= "2017-09-22") %>% 
+  summarise(rainfall_sum = sum(Accumulation, na.rm = TRUE)) 
+# View(sum1)
+sum2 <- Rainfall_event.summary %>%
+  subset(start >= "2018-03-20") %>% 
+  summarise(rainfall_sum = sum(Accumulation, na.rm = TRUE)) 
+# View(sum2)
+# max events
+event.max <- Rainfall_event.summary %>%
+  group_by(month=floor_date(start, "month")) %>%
+  summarise(max.acc = max(Accumulation, na.rm = TRUE),
+            max.int = max(max.intensity5, na.rm = TRUE))
+# View(event.max)
 
 ## Determine events where correction model applies
 Rainsum.corr <- (Rainsum) %>%
@@ -298,7 +316,7 @@ evt.corr <- evt.ana.corr1 %>%
   mutate(in1.corr = evt.flow.corr(in1.m_flow))
 # View(evt.corr)
 
-## Summarise rainfall events of analysis
+## Summarise hydrologic rainfall events of analysis
 corr.evt.sum <- (evt.corr) %>%
   group_by(storm.index) %>%
   summarise(Accumulation = sum(rainfall.mm, na.rm = TRUE),
@@ -320,7 +338,7 @@ corr.evt.sum <- (evt.corr) %>%
 # median(corr.evt.sum$max.intensity5)
 # returns: 27.43
 
-## Summary analysis events ADP 
+## Summary analysis hydrologic events ADP 
 ana.ADP.evt <- ADP.sum %>%
   subset(ADP.index == 23 |
          ADP.index == 26 |
@@ -360,6 +378,29 @@ ana.ADP.WQ <- ADP.sum %>%
 # returns: 0.04 - 4.87
 # median(ana.ADP.evt$duation)
 # returns: 1.92
+
+## Summary analysis for WQ events ADP for WQ 
+ana.evt.WQ <- Rainsum[-1,] %>%
+  subset(event == 64 |
+           event == 65 |
+           event == 66 |
+           event == 67 |
+           event == 73 |
+           event == 75 |
+           event == 78 |
+           event == 79 |
+           event == 89 |
+           event == 91) 
+# View(ana.evt.WQ)
+# range(ana.evt.WQ$Duration)
+# returns: 13.50000 - 51.36667
+# median(ana.evt.WQ$Duration)
+# returns: 35.66667
+# range(ana.evt.WQ$max.intensity5)
+# returns:3.048 - 109.728
+# median(ana.evt.WQ$max.intensity5)
+# returns: 11.43
+
 ## Temp
 corted.flow.plot <- evt.corr %>%
   select(timestamp,
@@ -432,28 +473,35 @@ ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill =
   labs(y = "Components as Fraction of Total Inflow", x = "Event")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+## pEAK INFLOW RATES  
+peak.in <- evt.corr %>%
+  select(timestamp,
+         rainfall.mm,
+         in1.corr,
+         in2.hobo.m_flow,
+         storm.index) %>%
+  group_by(storm.index) %>%
+  summarise(maxin1 = max(in1.corr, na.rm = TRUE),
+            maxin2 = max(in2.hobo.m_flow, na.rm = TRUE),
+            varin1 = var(in1.corr, na.rm = TRUE),
+            varin2 = var(in2.hobo.m_flow, na.rm = TRUE)) 
+# View(peak.in)
 
-# ## Volume reduction metric
-# # subset events of interest
-# evt.int <- c(23,32,42,46,76,78,80,86,89,91)
-# evt.VR <- hydr.ana %>%
-#   subset(storm.index == 23 |
-#            storm.index == 32 |
-#            storm.index == 42 |
-#            storm.index == 46 |
-#            storm.index == 76 |
-#            storm.index == 78 |
-#            storm.index == 80 |
-#            storm.index == 86 |
-#            storm.index == 89 |
-#            storm.index == 91) %>%
-#   select(storm.index,
-#          insum,
-#          out.vol) %>%
-#   mutate(VR = (insum - out.vol) / as.numeric(insum))
-# #View(evt.VR)
-# # median(as.numeric(evt.VR$VR))
-# # 0.828437
+  # range(peak.in$maxin1)
+  # returns: 0.001144186 0.454802176
+  # median(peak.in$maxin1)
+  # returns: 0.1719473
+  # range(peak.in$maxin2)
+  # returns: 0.1221213 0.6140065
+  # median(peak.in$maxin2)
+  # returns: 0.2430239
+  # median(peak.in$varin1)
+  # returns: 0.003366857
+  # median(peak.in$varin2)
+  # returns: 0.002277754
+  
+## Box plot of peak inflows
+
 
 ## Normality and similarity btw influent
 in.sig <- hydr.ana %>%
