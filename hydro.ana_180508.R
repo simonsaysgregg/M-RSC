@@ -2,6 +2,7 @@
 ## monitoring period July 2017-June 2018
 ## data located ./Working
 ## Hydrology Analysis
+## 4th in processing order
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
@@ -401,7 +402,7 @@ ana.evt.WQ <- Rainsum[-1,] %>%
 # median(ana.evt.WQ$max.intensity5)
 # returns: 11.43
 
-## Temp
+## Comparison of IN1 measurements
 corted.flow.plot <- evt.corr %>%
   select(timestamp,
          in1.m_flow,
@@ -413,7 +414,10 @@ ggplot(corted.flow.plot)+
   scale_color_manual(values = c("red", "blue", "black"), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
   scale_shape_manual(values = c(0,1,2), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
   labs(y = "Flow Rate (cms)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ## Percent diff on influent methods
 mod.eff <- (evt.corr) %>%
@@ -652,7 +656,10 @@ ggplot(corted.baseflow.plot.m)+
   scale_color_manual(values = c("red", "black"), labels = c("Corrected In1 Weir", "IN1 Weir"))+
   scale_shape_manual(values = c(0,1,2), labels = c("Corrected In1 Weir", "IN1 Weir"))+
   labs(y = "Flow Rate (cms)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text =element_text(size = 18))
 
 
 ggplot(base.bal)+

@@ -1,5 +1,6 @@
 ## For flow calibration and diagnostic analysis
-# Creation of calibration model for inflow corrections
+## Creation of calibration model for inflow corrections
+## 2nd in processing order
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
@@ -109,7 +110,10 @@ ggplot(DS.inflow1.m, aes(x = timestamp))+
   scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 ## scatter plot DS.inflow
 ggplot(DS.inflow1, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
@@ -225,7 +229,10 @@ ggplot(flow.short1.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 # Call:
 #   lm(formula = dryout ~ weir + lag1, data = DS.flow3.1[-c(32, 33, 
@@ -313,7 +320,11 @@ ggplot(DS.baseflow.m, aes(x = timestamp))+
   scale_color_manual(values = c("red", "black"), labels = c("Weir", "Dry Pond Outlet"))+
   scale_x_datetime(date_labels = "%m/%d", date_breaks = "6 day")+
   labs(y = "Flow Rate (cms)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
+
 ## scatter plot DS.baseflow
 ggplot(DS.baseflow, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
@@ -373,7 +384,10 @@ ggplot(DS.baseflow.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 # # Rectify autocorrelation
 # DS.flow100.2 <- na.omit(DS.baseflow.corr[,])

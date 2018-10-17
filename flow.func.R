@@ -1,4 +1,6 @@
-## for purpose of flow function development
+## for purpose of flow function application
+## applying calibration codes from flow.cal
+## 3rd in processing order
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
@@ -243,6 +245,7 @@ DS.flow <- (DS.hydro.metric) %>%
 ## Create outlet flow dataset
 # experimental: to determine method of velocity processing: see beyond
 ############ 
+
 ## Create a flow dataset for viewing
 DS.flow.tot <- (DS.hydro.metric) %>%
   select(timestamp,
@@ -257,7 +260,10 @@ ggplot(DS.flow.tot, aes(x = timestamp))+
   geom_rect(aes(xmin = as.POSIXct("2017/07/12"), xmax = as.POSIXct("2018/07/09"), ymin = -1.5, ymax = 1.5, fill = "\u00B1 0.03 m/s"))+
   geom_line(aes(y = value))+
   labs(y = "Flow Velocity (m/s)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 # DS.outflow <- (DS.hydro.metric) %>%
 #   select(timestamp,

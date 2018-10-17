@@ -2,6 +2,7 @@
 ## monitoring period July 2017-June 2018
 ## data location in ./Working
 ## dataset preparation
+## 1st in processing order
 
 ## Visualizing data
 require("ggplot2")      # Powerful and aesthetic plotting system for R
