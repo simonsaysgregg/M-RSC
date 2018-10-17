@@ -195,10 +195,14 @@ event.92 <- MRSC.temp.m %>%
 
 # plot
 ggplot(event.92)+
-  geom_line(aes(x = timestamp, y = value, color = variable))+
+  geom_line(aes(x = timestamp, y = value, color = variable, linetype = variable))+
   scale_color_manual(values = c("black", "red", "purple", "blue", "green"),labels = c("Air", "IN1", "IN2", "WELL", "OUT"))+
+  scale_linetype_manual(values = c(1,2,3,4,5), labels = c("Air", "IN1", "IN2", "WELL", "OUT"))+
   labs(y = "Temperature (°C)", x = "Date")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ## statistics
 # median in1 and in2

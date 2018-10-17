@@ -475,7 +475,10 @@ ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill =
   geom_col()+
   scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "ET", "Exfiltration", "Outflow"))+
   labs(y = "Components as Fraction of Total Inflow", x = "Event")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ## pEAK INFLOW RATES  
 peak.in <- evt.corr %>%

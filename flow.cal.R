@@ -119,7 +119,10 @@ ggplot(DS.inflow1, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ## box plots DS.inflow
 ggplot(DS.inflow1.m)+
@@ -330,7 +333,10 @@ ggplot(DS.baseflow, aes(x = in1.m_flow, y = dryout.m_flow))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text =element_text(size = 18))
 ## box plots DS.inflow
 ggplot(DS.baseflow.m)+
   geom_boxplot(aes(x = variable, y = value))

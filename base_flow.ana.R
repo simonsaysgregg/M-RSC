@@ -112,6 +112,16 @@ infil.ds <- DryEvents %>%
   subset(ADP.index != 0)  
 # View(infil.ds)
 
+## Plot well stage over monitoring period
+ggplot(infil.ds, aes(x = timestamp, y = well.cm))+
+  geom_point(aes(x = timestamp, y = well.cm))+
+  labs(y =  "Well Stage (cm)", x = "Date")+
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
+
+
 ## Average well deeps over interval
 # Copy working df
 infil.pros <- infil.ds %>%
@@ -124,6 +134,7 @@ infil.pros1 <- infil.pros %>%
                     group_by(ADP.index, day) %>%
                   summarise(well.cm = mean(well.cm))
 # View(infil.pros1)
+
 # Add count day
 infil.pros2 <- infil.pros1 %>%
   group_by(ADP.index) %>%
@@ -146,8 +157,15 @@ infil.est <- infil.pros2 %>%
   subset(!is.na(delta.stage)) 
 # View(infil.est)
 
+## Plot infil.est durat vs. stage ### Double check!!
+# ggplot(infil.est, aes(x = durat, y = well.cm))+
+#   geom_point(aes(x = durat, y = well.cm))+
+#   labs(y = "Well Stage (cm)", x = "ADP (hours)" )+
+#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+#   geom_smooth(method = lm, se = FALSE, aes(x = durat, y = well.cm))
 
-## Plot infil.est
+
+## Plot infil.est stage vs. change
 ggplot(infil.est, aes(x = well.cm, y = delta.stage))+
   geom_point(aes(x = well.cm, y = delta.stage))+
   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
@@ -167,13 +185,20 @@ sprsum <- infil.est %>%
 ggplot(autwin)+
   geom_point(aes(x = well.cm, y = delta.stage))+
   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))+
   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+
 ## Plot Sprin- Summer
 ggplot(sprsum)+
   geom_point(aes(x = well.cm, y = delta.stage))+
   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))+
   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
 
 ## Linear model development

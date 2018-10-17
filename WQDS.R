@@ -1056,7 +1056,9 @@ ggplot(data = TN.ex)+
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TN"))+
   geom_hline(aes(yintercept = 1.17, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
-  theme(legend.position = "bottom", legend.title = element_blank())+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        text = element_text(size = 18))+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
 ## TP
@@ -1097,7 +1099,9 @@ ggplot(data = TP.ex)+
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TP"))+
   geom_hline(aes(yintercept = 0.13, color = "Good/Fair WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
-  theme(legend.position = "bottom", legend.title = element_blank())+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        text = element_text(size = 18))+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
 ## TSS
@@ -1138,7 +1142,9 @@ ggplot(data = TSS.ex)+
   geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
   geom_hline(aes(yintercept = 25.0, color = "TSS Target"))+
   scale_shape_manual(values = c(15,16,0,1))+
-  theme(legend.position = "bottom", legend.title = element_blank())+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        text = element_text(size = 18))+
   labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
 
 
@@ -1174,7 +1180,10 @@ ggplot(tot.wq, aes(x = log(Accumulation), y = log(TP.x/TP.y)))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ##lm TSS
 lmTSS <- lm(log(TSS.x/TSS.y) ~ log(Accumulation), data = tot.wq)
@@ -1187,7 +1196,10 @@ ggplot(tot.wq, aes(x = log(Accumulation), y = log(TSS.x/TSS.y)))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text =element_text(size = 18))
 
 ##lm PBP
 lmPBP <- lm(log(PBP.x/PBP.y) ~ log(Accumulation), data = tot.wq)
@@ -1200,7 +1212,10 @@ ggplot(tot.wq, aes(x = log(Accumulation), y = log(PBP.x/PBP.y)))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Log(In/Out RC)", x = "Log(Accumulation (mm)) ")+
-  theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 ##lm TKN
 lmTKN <- lm(log(TKN.x/TKN.y) ~ log(Accumulation), data = tot.wq)
