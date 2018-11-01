@@ -122,7 +122,7 @@ ggplot(infil.ds, aes(x = timestamp, y = well.cm))+
         text = element_text(size = 18))
 
 
-## Average well deeps over interval
+## Average well depths over interval
 # Copy working df
 infil.pros <- infil.ds %>%
   subset(!is.na(well.cm))
@@ -145,6 +145,7 @@ infil.pros2 <- infil.pros1 %>%
   subset(as.numeric(total) >= 2)
 # View(infil.pros2)
 
+
 ## Infiltraiton estimation
 infil.est <- infil.pros2 %>%
   select(well.cm,
@@ -157,13 +158,6 @@ infil.est <- infil.pros2 %>%
   subset(!is.na(delta.stage)) 
 # View(infil.est)
 
-## Plot infil.est durat vs. stage ### Double check!!
-# ggplot(infil.est, aes(x = durat, y = well.cm))+
-#   geom_point(aes(x = durat, y = well.cm))+
-#   labs(y = "Well Stage (cm)", x = "ADP (hours)" )+
-#   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
-#   geom_smooth(method = lm, se = FALSE, aes(x = durat, y = well.cm))
-
 
 ## Plot infil.est stage vs. change
 ggplot(infil.est, aes(x = well.cm, y = delta.stage))+
@@ -171,6 +165,44 @@ ggplot(infil.est, aes(x = well.cm, y = delta.stage))+
   labs(y = "Change in Well Stage (cm/day)", x = "Well Stage (cm)")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))+
   geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+
+## recreatoin of well stage for individaual ADPs
+# Average well depths over interval
+# Copy working df
+infil.recreat <- infil.ds %>%
+  subset(!is.na(well.cm))
+# #View(infil.recreat)
+# create counting index for interval generation
+infil.recreat1 <- infil.recreat %>%
+  mutate(timestamp = ymd_hms(timestamp),
+         hour = floor_date(timestamp, 'hour')) %>%
+  group_by(ADP.index, hour) %>%
+  summarise(well.cm = mean(well.cm))
+# View(infil.recreat1)
+
+# Add count day
+infil.recreat2 <- infil.recreat1 %>%
+  group_by(ADP.index) %>%
+  mutate(start = min(hour),
+         end = max(hour),
+         total = (end - start) / 86400, # conversion to days
+         durat = (hour - start) / 86400) %>%
+  subset(ADP.index != 25) %>%
+  subset(ADP.index != 41) %>%
+  subset(ADP.index != 91)
+# View(infil.recreat2)
+
+## Plot infil.est durat vs. stage ### Double check!!
+ggplot(infil.recreat2, aes(x = durat, y = well.cm))+
+  geom_point(aes(x = durat, y = well.cm))+
+  labs(y = "Well Stage (cm)", x = "Days" )+
+  geom_hline(yintercept = 99)+
+  annotate("text", x = 10, y = 99.5, label = "Autumn-Winter", size = 5)+
+  annotate("text", x = 10, y = 98.5, label = "Spring-Summer", size = 5)+
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(), 
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18))
 
 
 ## Seasonal
@@ -199,60 +231,76 @@ ggplot(sprsum)+
         legend.title = element_blank(), 
         plot.title = element_text(hjust = 0.5),
         text = element_text(size = 18))+
-  geom_smooth(method = lm, se = FALSE, aes(x = well.cm, y = delta.stage))
+  annotate("text", x = 95.5, y = 2.5, label = "italic(y) == 3026.3 - 63.7(x) + 0.33(x) ^ 2", parse = TRUE, size = 5)+
+  annotate("text", x = 95.5, y = 2.25, label = "italic(R) ^ 2 == 0.35", parse = TRUE, size = 5)+
+  annotate("text", x = 95.5, y = 2, label = "italic(RMSE) == 0.55", parse = TRUE, size = 5)+
+  geom_smooth(aes(x = well.cm, y = delta.stage), method = "gam", formula = y ~ poly(x, 2) , se = FALSE )
+
 
 ## Linear model development
 ##lm
-lmbfspr <- lm(delta.stage ~ well.cm , data = sprsum[,])
+lmbfspr <- lm(delta.stage ~ well.cm + I(well.cm^2) , data = sprsum[,])
 summary(lmbfspr)
 par(mfrow=c(2,2))
 plot(lmbfspr)
 
-# returns
 # Call:
-#   lm(formula = delta.stage ~ well.cm, data = sprsum[, ])
+#   lm(formula = delta.stage ~ well.cm + I(well.cm^2), data = sprsum[, 
+#                                                                    ])
 # 
 # Residuals:
-#   Min      1Q  Median      3Q     Max 
-# -0.9057 -0.3349 -0.0202  0.2372  3.1715 
+#   Min       1Q   Median       3Q      Max 
+# -1.43235 -0.25757 -0.06632  0.20755  2.67594 
 # 
 # Coefficients:
-#   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept) -40.2412    10.3038  -3.905 0.000264 ***
-#   well.cm       0.4233     0.1079   3.925 0.000248 ***
+#   Estimate Std. Error t value Pr(>|t|)   
+# (Intercept)  3026.2756   929.1180   3.257  0.00197 **
+#   well.cm       -63.6757    19.4205  -3.279  0.00184 **
+#   I(well.cm^2)    0.3349     0.1015   3.301  0.00173 **
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # 
-# Residual standard error: 0.6108 on 54 degrees of freedom
-# Multiple R-squared:  0.2219,	Adjusted R-squared:  0.2075 
-# F-statistic:  15.4 on 1 and 54 DF,  p-value: 0.0002478
+# Residual standard error: 0.5615 on 53 degrees of freedom
+# Multiple R-squared:  0.3546,	Adjusted R-squared:  0.3302 
+# F-statistic: 14.56 on 2 and 53 DF,  p-value: 9.131e-06
+
+#Root mean square error:
+RSS5 <- c(crossprod(lmbfspr$residuals))
+
+MSE5 <- RSS5 / length(lmbfspr$residuals)
+
+RMSE5 <- sqrt(MSE5)
+# View(RMSE5)
+# Returns: 0.5462371
+
 
 # Autocorrelation
 # acf(lmbfspr$residuals)
 # Not autocorrelated
 
 ##lm
-lmbfaut <- lm(delta.stage ~ well.cm , data = autwin[,])
+lmbfaut <- lm(delta.stage ~ well.cm + I(well.cm^2) , data = autwin[,])
 summary(lmbfaut)
 par(mfrow=c(2,2))
 plot(lmbfaut)
 
-#returns
 # Call:
-#   lm(formula = delta.stage ~ well.cm, data = autwin[, ])
+#   lm(formula = delta.stage ~ well.cm + I(well.cm^2), data = autwin[, 
+#                                                                    ])
 # 
 # Residuals:
 #   Min      1Q  Median      3Q     Max 
-# -1.6868 -0.4700 -0.2333  0.1806  4.1239 
+# -1.6702 -0.4567 -0.2416  0.1760  4.1421 
 # 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)
-# (Intercept) -6.45270    5.14711  -1.254    0.213
-# well.cm      0.06685    0.05018   1.332    0.186
+# (Intercept)   75.561384 225.790052   0.335    0.739
+# well.cm       -1.523276   4.376860  -0.348    0.728
+# I(well.cm^2)   0.007705   0.021207   0.363    0.717
 # 
-# Residual standard error: 0.888 on 112 degrees of freedom
-# Multiple R-squared:  0.0156,	Adjusted R-squared:  0.006809 
-# F-statistic: 1.775 on 1 and 112 DF,  p-value: 0.1855
+# Residual standard error: 0.8914 on 111 degrees of freedom
+# Multiple R-squared:  0.01677,	Adjusted R-squared:  -0.0009483 
+# F-statistic: 0.9465 on 2 and 111 DF,  p-value: 0.3912
 
 # Autocorrelation
 # acf(lmbfaut$residuals)
