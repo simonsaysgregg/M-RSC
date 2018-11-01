@@ -1050,16 +1050,14 @@ TN.ex <- TN.ex %>%
 # View(TN.ex)
 ## Exceedance probability plots
 ggplot(data = TN.ex)+
-  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TN"))+ 
-  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TN"))+
-  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TN"))+ 
-  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TN"))+
-  geom_hline(aes(yintercept = 1.17, color = "Good/Fair WQ"))+
+  geom_point(aes(x = In.ba.prob, y = log(In.ba.sort), shape = "Inlet TN"))+ 
+  geom_point(aes(x = Out.ba.prob, y = log(Out.ba.sort), shape = "Outlet TN"))+
+  geom_hline(aes(yintercept = log(0.99), color = "Good WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         text = element_text(size = 18))+
-  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Log(Concentration (mg/L))")
 
 ## TP
 TP.ex <- tot.wq %>%
@@ -1093,16 +1091,14 @@ TP.ex <- TP.ex %>%
 # View(TP.ex)
 ## Exceedance probability plots
 ggplot(data = TP.ex)+
-  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TP"))+ 
-  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TP"))+
-  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TP"))+ 
-  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TP"))+
-  geom_hline(aes(yintercept = 0.13, color = "Good/Fair WQ"))+
+  geom_point(aes(x = In.ba.prob, y = log(In.ba.sort), shape = "Inlet TP"))+ 
+  geom_point(aes(x = Out.ba.prob, y = log(Out.ba.sort), shape = "Outlet TP"))+
+  geom_hline(aes(yintercept = log(0.11), color = "Good WQ"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         text = element_text(size = 18))+
-  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Log(Concentration (mg/L))")
 
 ## TSS
 TSS.ex <- tot.wq %>%
@@ -1136,16 +1132,14 @@ TSS.ex <- TSS.ex %>%
 # View(TSS.ex)
 ## Exceedance probability plots
 ggplot(data = TSS.ex)+
-  geom_point(aes(x = In.st.prob, y = In.st.sort, shape = "SF Inlet TSS"))+ 
-  geom_point(aes(x = Out.st.prob, y = Out.st.sort, shape = "SF Outlet TSS"))+
-  geom_point(aes(x = In.ba.prob, y = In.ba.sort, shape = "BF Inlet TSS"))+ 
-  geom_point(aes(x = Out.ba.prob, y = Out.ba.sort, shape = "BF Outlet TSS"))+
-  geom_hline(aes(yintercept = 25.0, color = "TSS Target"))+
+  geom_point(aes(x = In.st.prob, y = log(In.st.sort), shape = "Inlet TSS"))+ 
+  geom_point(aes(x = Out.st.prob, y = log(Out.st.sort), shape = "Outlet TSS"))+
+  geom_hline(aes(yintercept = log(25.0), color = "TSS Target"))+
   scale_shape_manual(values = c(15,16,0,1))+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         text = element_text(size = 18))+
-  labs(x = "Exceedance Probability", y = "Concentration (mg/L)")
+  labs(x = "Exceedance Probability", y = "Log(Concentration (mg/L))")
 
 
 ## Efficiency Ratio v. accumulation regression
