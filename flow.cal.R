@@ -232,6 +232,9 @@ ggplot(flow.short1.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  annotate("text", x = 0.0725, y = 0.2, label = "italic(y) == 5.31(x) - 0.27 ", parse = TRUE, size = 5)+
+  annotate("text", x = 0.0725, y = 0.19, label = "italic(R) ^ 2 == 0.91", parse = TRUE, size = 5)+
+  annotate("text", x = 0.0725, y = 0.18, label = "italic(RMSE) == 0.016", parse = TRUE, size = 5)+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5),
@@ -390,6 +393,9 @@ ggplot(DS.baseflow.corr, aes(x = weir, y = dryout))+
   geom_point()+
   geom_smooth(method = lm, se = FALSE)+
   labs(y = "Dry Pond Outlet (cms)", x = "Weir (cms)")+
+  annotate("text", x = 0.0005, y = 0.0065, label = "italic(y) == 0.006 - 4.05(x)", parse = TRUE, size = 5)+
+  annotate("text", x = 0.0005, y = 0.00638, label = "italic(R) ^ 2 == 0.35", parse = TRUE, size = 5)+
+  annotate("text", x = 0.0005, y = 0.00626, label = "italic(RMSE) == 0.0004", parse = TRUE, size = 5)+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5),
