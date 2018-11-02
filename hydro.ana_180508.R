@@ -102,6 +102,18 @@ base.flow.corr <- function(in1flow){
   ifelse(in1flow <= 0.0012, (-4.05*(in1flow) - 0.006), in1flow)
 }
 
+# ET selection
+EVAP <- function(rainfall.mm, ET){
+  ifelse(rainfall.mm == 0, ET , 0 )
+}
+
+# Exfiltration estimation
+EXFIL <- function(well.cm){
+  exfil = 3026.3 - 63.7 * well.cm + 0.33 * well.cm^2
+  exfil = exfil / 720
+  return(exfil)
+}
+
 ######################### End
 ## Read file from ./Working folder
 ## units feet
@@ -120,9 +132,11 @@ DS.flow$timestamp <- ymd_hms(DS.flow$timestamp)
 ## Select columns for hyrology analysis
 DS.rain.metric <- DS %>%
             select("timestamp",
-                   "rain.in") %>%
+                   "rain.in",
+                   "well.ft") %>%
             transmute(timestamp = timestamp,
                       rainfall.mm = rain.in * 25.4,
+                      well.cm = (well.ft * 30.48),
                       int.5min = (rainfall.mm + lag(rainfall.mm) + 
                                     (0.5*(apply(cbind((lag(rainfall.mm, 2)), lead(rainfall.mm)), 1, max))))*12)
 # View(DS.rain.metric)
@@ -140,7 +154,8 @@ RSC.hydro.m <- (RSC.hydro.m) %>%
                        in2.m_flow,
                        in2.hobo.m_flow,
                        out.flow,
-                       out.flow.roll.ASABE) 
+                       out.flow.roll.ASABE,
+                       well.cm) 
 # View(RSC.hydro.m)
 
 ## Remove extra data; only rain and time stamp for delineation
@@ -225,7 +240,8 @@ RSC.hydro.m <- left_join(RSC.hydro.m, ETCRONOS, by = "timestamp")
 ## Distribut daily values across the day
 RSC.hydro.m <- RSC.hydro.m %>%
   mutate(ET.mm = (Daily.et.in * 25.4) / 720,
-         ET = na.locf(ET.mm, na.rm = FALSE))
+         ET = na.locf(ET.mm, na.rm = FALSE)) %>%
+  mutate(ET.cor = EVAP(rainfall.mm, ET))
 # View(RSC.hydro.m)
 
 ## Split into list of events
@@ -249,8 +265,9 @@ Rainsum <- RainEvents %>%
                                  in2.vol = sum(in2.m_flow * 120, na.rm = TRUE) ,
                                  in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE) ,
                                  runoff.est.runon = runoff.runon(Accumulation, CN = 87),
-                                 ET.sum = sum(ET, na.rm = TRUE),
+                                 ET.sum = sum(1.2 * ET, na.rm = TRUE),
                                  direct.precip = runoff.dp(Accumulation),
+                                 exfil = sum(EXFIL(well.cm), na.rm = TRUE) / 10,
                                  out.vol = sum(out.flow * 120, na.rm = TRUE) ,
                                  out.vol.roll = sum(out.flow.roll.ASABE * 120, na.rm = TRUE) )})
 # View(Rainsum)
@@ -404,13 +421,14 @@ ana.evt.WQ <- Rainsum[-1,] %>%
 
 ## Comparison of IN1 measurements
 corted.flow.plot <- evt.corr %>%
+  subset(storm.index >= 82) %>%
   select(timestamp,
          in1.m_flow,
          in1.corr,
          dryout.m_flow) %>%
   melt(id = "timestamp")
 ggplot(corted.flow.plot)+
-  geom_point(aes(x = timestamp, y = value, color = variable, shape = variable))+
+  geom_point(aes(x = timestamp, y = value, color = variable, shape = variable), size = 8)+
   scale_color_manual(values = c("red", "blue", "black"), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
   scale_shape_manual(values = c(0,1,2), labels = c("Weir", "Corrected Weir", "Dry Pond Outlet"))+
   labs(y = "Flow Rate (cms)", x = "Date")+
@@ -434,7 +452,8 @@ hydr.ana <- (evt.corr) %>%
          in1.corr,
          in2.hobo.m_flow,
          ET,
-         storm.index) %>%
+         storm.index,
+         well.cm) %>%
   group_by(storm.index) %>%
   summarise(Start = min(timestamp),
             Duration = ((max(timestamp)-min(timestamp))),
@@ -442,17 +461,17 @@ hydr.ana <- (evt.corr) %>%
             in1.vol = sum(in1.corr * 120, na.rm = TRUE) ,
             in2.hobo.vol = sum(in2.hobo.m_flow * 120, na.rm = TRUE),
             runoff.est.runon = runoff.runon(Accumulation, CN = 87),
-            ET = sum(ET, na.rm = TRUE),
+            ET = sum(1.2 * ET, na.rm = TRUE),
             direct.precip = runoff.dp(Accumulation),
-            exfil = (0.42/24) * Duration) %>% # conversion days to hours
+            exfil = sum(EXFIL(well.cm), na.rm = TRUE) / 10) %>% # conversion days to cumulative event
   mutate(insum = in1.vol + in2.hobo.vol + runoff.est.runon + direct.precip,
          frac.in1 = in1.vol / as.numeric(insum),
          frac.in2 = in2.hobo.vol / as.numeric(insum),
          frac.runon = runoff.est.runon / as.numeric(insum),
          frac.directp = direct.precip / as.numeric(insum),
          frac.ET = - (ET / as.numeric(insum)),
-         frac.exfil = - (exfil / as.numeric(insum)),
-         frac.delta = - (frac.ET + frac.exfil) - 1)
+         frac.exfil =  (exfil / as.numeric(insum)),
+         frac.delta =  (frac.ET + frac.exfil) - 1)
 # View(hydr.ana)
 
 ## Median inflow element fractions
@@ -462,6 +481,17 @@ hydr.ana <- (evt.corr) %>%
 # returns: 0.2774
 # median(hydr.ana$frac.runon)
 # returns: 0.3999
+
+## Cumulative ET and exfil of hydrologic events
+cum.hydro <- hydr.ana %>%
+  select(Accumulation,
+         insum,
+         ET,
+         exfil) %>%
+  summarise_all(funs(sum)) %>%
+  mutate(perc.ET = ET / insum,
+         perc.exfil = exfil / insum)
+# View(cum.hydro)
 
 ## Bar chart of event data
 # showing elements of hydrology as fraction of inflow
@@ -473,7 +503,7 @@ hydr.ana.bar <- hydr.ana %>%
 # bar chart
 ggplot(data = hydr.ana.bar, aes(x = as.character(storm.index), y = value, fill = variable)) +
   geom_col()+
-  scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "ET", "Exfiltration", "Outflow"))+
+  scale_fill_brewer(palette = "OrRd", labels = c("IN1 Flow", "IN2 Flow", "Runon", "Direct Precipitation", "ET", "Exfiltration", "Outflow"))+
   labs(y = "Components as Fraction of Total Inflow", x = "Event")+
   theme(legend.position = "bottom", 
         legend.title = element_blank(), 
@@ -545,60 +575,7 @@ in.sig <- hydr.ana %>%
 # V = 50, p-value = 0.01953
 # alternative hypothesis: true location shift is not equal to 0
 
-# ## Peak Flow Reduction
-# # same subset as previous
-# evt.PR <- evt.corr.2 %>%
-#   subset(storm.index == 23 |
-#            storm.index == 32 |
-#            storm.index == 42 |
-#            storm.index == 46 |
-#            storm.index == 76 |
-#            storm.index == 78 |
-#            storm.index == 80 |
-#            storm.index == 86 |
-#            storm.index == 89 |
-#            storm.index == 91) %>%
-#   select(storm.index,
-#          in1.m_flow,
-#          in2.hobo.m_flow,
-#          out.flow) %>%
-#   group_by(storm.index) %>%
-#   summarise(in1p = max(in1.m_flow, na.rm = TRUE),
-#          in2p = max(in2.hobo.m_flow, na.rm = TRUE),
-#          outp = max(out.flow, na.rm = TRUE))
-# # View(evt.PR)
-# 
-# ## Grab frac of inflow volumes
-# in.frac <- hydr.ana %>%
-#   subset(storm.index == 23 |
-#            storm.index == 32 |
-#            storm.index == 42 |
-#            storm.index == 46 |
-#            storm.index == 76 |
-#            storm.index == 78 |
-#            storm.index == 80 |
-#            storm.index == 86 |
-#            storm.index == 89 |
-#            storm.index == 91) %>%
-#   select(frac.in1,
-#          frac.in2,
-#          insum,
-#          storm.index)
-# 
-# ## Join datasets
-# evt.PR <- left_join(evt.PR, in.frac, by = "storm.index")
-# 
-# ## Calculate inlet Peak Flow
-# # composited (weighted average method)
-# evt.PR <- evt.PR %>%
-#   group_by(storm.index) %>%
-#   mutate(in.peak = (in1p * frac.in1) + (in2p * frac.in2),
-#          PR = ((in.peak - outp) / as.numeric(in.peak)) * 100,
-#          in.med = median(c(in1p, in2p)),
-#          PR.med = ((in.med - outp) / as.numeric(in.med) * 100))
-# # View(evt.PR)
-# # median(as.numeric(evt.PR$PR))
-# # -192.4113
+
 
 ## Baseflow corections and analysis
 # Determine events where correction model applies
