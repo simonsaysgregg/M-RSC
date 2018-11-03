@@ -86,18 +86,18 @@ base.sum.wq <- (base.wq) %>%
 # View(base.sum.wq)
 
 ## Test for normailty in pollutants
-# shapiro.test(base.wq$TKN)
-# shapiro.test(base.wq$NOx)
-# shapiro.test(base.wq$NH3N)
-# shapiro.test(base.wq$TP)
-# shapiro.test(base.wq$OP)
-# shapiro.test(base.wq$TSS)
-# shapiro.test(storm.wq$TKN)
-# shapiro.test(storm.wq$NOx)
-# shapiro.test(storm.wq$NH3N)
-# shapiro.test(storm.wq$TP)
-# shapiro.test(storm.wq$OP)
-# shapiro.test(storm.wq$TSS)
+shapiro.test(base.wq$TKN) N
+shapiro.test(base.wq$NOx) NN
+shapiro.test(base.wq$NH3N) N
+shapiro.test(base.wq$TP) N
+shapiro.test(base.wq$OP) N
+shapiro.test(base.wq$TSS) NN
+shapiro.test(storm.wq$TKN) NN
+shapiro.test(storm.wq$NOx) N
+shapiro.test(storm.wq$NH3N) NN
+shapiro.test(storm.wq$TP) NN
+shapiro.test(storm.wq$OP) NN
+shapiro.test(storm.wq$TSS) NN
 
 
 ## Box plots of by site, analyte, and parameter
@@ -132,6 +132,10 @@ ggplot(data = storm.wq.melt, aes(x = variable))+
   labs(y = "Concentration (ug/L) or (mg/L)", x = "Pollutant")+
   theme(legend.position = "bottom", legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+## box plot trying to understand TSS
+ggplot(data = storm.wq, aes(y = storm.wq$TSS))+
+  geom_boxplot()
+
 # Box plots
 ggplot(data = base.wq.melt, aes(x = variable))+
   geom_boxplot(aes(y = value, color = site))+
@@ -159,10 +163,10 @@ base.TKN1 <- base.out %>%
 base.TKN <- left_join(base.TKN, base.TKN1, "samp.date")
 # % reduction
 base.TKN <- base.TKN %>%
-  mutate(reduc = ((TKN.x - TKN.y) / TKN.x) * 100)
+  mutate(reduc = ((TKN.x - TKN.y) / TKN.y) * 100)
 # View(base.TKN)
 # median(base.TKN$reduc)
-# return: 16.5
+# return: 19.8
 
 ## NOx analysis
 base.NOx <- base.in %>%
@@ -176,10 +180,10 @@ base.NOx1 <- base.out %>%
 base.NOx <- left_join(base.NOx, base.NOx1, "samp.date")
 # % reduction
 base.NOx <- base.NOx %>%
-  mutate(reduc = ((NOx.x - NOx.y) / NOx.x) * 100)
+  mutate(reduc = ((NOx.x - NOx.y) / NOx.y) * 100)
 # View(base.NOx)
 # median(base.NOx$reduc)
-# return: 44.0
+# return: 78.7
 
 ## TN analysis
 base.TN <- base.in %>%
@@ -199,10 +203,10 @@ base.TN1 <- base.out %>%
 base.TN <- left_join(base.TN, base.TN1, "samp.date")
 # % reduction
 base.TN <- base.TN %>%
-  mutate(reduc = ((TN.x - TN.y) / TN.x) * 100)
+  mutate(reduc = ((TN.x - TN.y) / TN.y) * 100)
 # View(base.TN)
 # median(base.TN$reduc)
-# return: 22.3
+# return: 28.8
 
 ## NH3N analysis
 base.NH3N <- base.in %>%
@@ -216,10 +220,10 @@ base.NH3N1 <- base.out %>%
 base.NH3N <- left_join(base.NH3N, base.NH3N1, "samp.date")
 # % reduction
 base.NH3N <- base.NH3N %>%
-  mutate(reduc = ((NH3N.x - NH3N.y) / NH3N.x) * 100)
+  mutate(reduc = ((NH3N.x - NH3N.y) / NH3N.y) * 100)
 # View(base.NH3N)
 # median(base.NH3N$reduc)
-# return: 13.8
+# return: 19.9
 
 ## TP analysis
 base.TP <- base.in %>%
@@ -233,10 +237,10 @@ base.TP1 <- base.out %>%
 base.TP <- left_join(base.TP, base.TP1, "samp.date")
 # % reduction
 base.TP <- base.TP %>%
-  mutate(reduc = ((TP.x - TP.y) / TP.x) * 100)
+  mutate(reduc = ((TP.x - TP.y) / TP.y) * 100)
 # View(base.TP)
 # median(base.TP$reduc)
-# return: 2.6
+# return: 2.7
 
 ## OP analysis
 base.OP <- base.in %>%
@@ -250,10 +254,10 @@ base.OP1 <- base.out %>%
 base.OP <- left_join(base.OP, base.OP1, "samp.date")
 # % reduction
 base.OP <- base.OP %>%
-  mutate(reduc = ((OP.x - OP.y) / OP.x) * 100)
+  mutate(reduc = ((OP.x - OP.y) / OP.y) * 100)
 # View(base.OP)
 # median(base.OP$reduc)
-# return: -4.1
+# return: -3.9
 
 ## TSS analysis
 base.TSS <- base.in %>%
@@ -267,10 +271,10 @@ base.TSS1 <- base.out %>%
 base.TSS <- left_join(base.TSS, base.TSS1, "samp.date")
 # % reduction
 base.TSS <- base.TSS %>%
-  mutate(reduc = ((TSS.x - TSS.y) / TSS.x) * 100)
+  mutate(reduc = ((TSS.x - TSS.y) / TSS.y) * 100)
 # View(base.TSS)
 # median(base.TSS$reduc)
-# return: 33.0
+# return: 50.1
 
 ## TSS.extra analysis
 base.TSS.extra <- base.in %>%
@@ -284,10 +288,10 @@ base.TSS.extra1 <- base.out %>%
 base.TSS.extra <- left_join(base.TSS.extra, base.TSS.extra1, "samp.date")
 # % reduction
 base.TSS.extra <- base.TSS.extra %>%
-  mutate(reduc = ((TSS.extra.x - TSS.extra.y) / TSS.extra.x) * 100)
+  mutate(reduc = ((TSS.extra.x - TSS.extra.y) / TSS.extra.y) * 100)
 # View(base.TSS.extra)
 # median(base.TSS.extra$reduc)
-# return: 10.5
+# return: 11.9
 
 ## ON analysis
 base.ON <- base.in %>%
@@ -333,18 +337,18 @@ base.PBP <- base.PBP %>%
 
 ## base flow pollutant testing significance
 # TKN
-wilcox.test(base.TKN$TKN.x, base.TKN$TKN.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+t.test(base.TKN$TKN.x, base.TKN$TKN.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
 # returns
-# Wilcoxon signed rank test
+# Paired t-test
 # 
 # data:  base.TKN$TKN.x and base.TKN$TKN.y
-# V = 51, p-value = 0.006836
-# alternative hypothesis: true location shift is greater than 0
+# t = 3.2399, df = 9, p-value = 0.00508
+# alternative hypothesis: true difference in means is greater than 0
 # 95 percent confidence interval:
-#   54.96   Inf
+#   54.27627      Inf
 # sample estimates:
-#   (pseudo)median
-# 120.4
+#   mean of the differences 
+# 125 
 
 # NOx
 wilcox.test(base.NOx$NOx.x, base.NOx$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -375,46 +379,46 @@ wilcox.test(base.TN$TN.x, base.TN$TN.y, alternative = "t", paired = TRUE, exact 
 # 227.79 
 
 # NH3N
-wilcox.test(base.NH3N$NH3N.x, base.NH3N$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+t.test(base.NH3N$NH3N.x, base.NH3N$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
 # returns
-# Wilcoxon signed rank test
+# Paired t-test
 # 
 # data:  base.NH3N$NH3N.x and base.NH3N$NH3N.y
-# V = 31, p-value = 0.7695
-# alternative hypothesis: true location shift is not equal to 0
+# t = 0.58121, df = 9, p-value = 0.5754
+# alternative hypothesis: true difference in means is not equal to 0
 # 95 percent confidence interval:
-#   -20.81  32.32
+#   -19.63208  33.20808
 # sample estimates:
-#   (pseudo)median 
-# 6.25 
+#   mean of the differences 
+# 6.788 
 
 # TP
-wilcox.test(base.TP$TP.x, base.TP$TP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+t.test(base.TP$TP.x, base.TP$TP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
 # returns:
-# Wilcoxon signed rank test
+# Paired t-test
 # 
 # data:  base.TP$TP.x and base.TP$TP.y
-# V = 29, p-value = 0.9219
-# alternative hypothesis: true location shift is not equal to 0
+# t = -0.27782, df = 9, p-value = 0.7874
+# alternative hypothesis: true difference in means is not equal to 0
 # 95 percent confidence interval:
-#   -36.955  23.695
+#   -32.44669  25.34869
 # sample estimates:
-#   (pseudo)median 
-# 2.615
+#   mean of the differences 
+# -3.549
 
 # OP
-wilcox.test(base.OP$OP.x, base.OP$OP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+t.test(base.OP$OP.x, base.OP$OP.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
 # returns:
-# Wilcoxon signed rank test
+# Paired t-test
 # 
 # data:  base.OP$OP.x and base.OP$OP.y
-# V = 22, p-value = 0.625
-# alternative hypothesis: true location shift is not equal to 0
+# t = -0.85395, df = 9, p-value = 0.4153
+# alternative hypothesis: true difference in means is not equal to 0
 # 95 percent confidence interval:
-#   -34.38  11.78
+#   -31.81964  14.37964
 # sample estimates:
-#   (pseudo)median 
-# -5.56 
+#   mean of the differences 
+# -8.72 
 
 # TSS
 wilcox.test(base.TSS$TSS.x, base.TSS$TSS.y, alternative = "g", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -713,18 +717,18 @@ wilcox.test(storm.in.TKN$TKN.x, storm.in.TKN$TKN.y, alternative = "t", paired = 
 # 3103.845
 
 # NOx
-wilcox.test(storm.in.NOx$NOx.x, storm.in.NOx$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
+t.test(storm.in.NOx$NOx.x, storm.in.NOx$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
 # returns
-# Wilcoxon signed rank test
+# Paired t-test
 # 
 # data:  storm.in.NOx$NOx.x and storm.in.NOx$NOx.y
-# V = 42, p-value = 0.1602
-# alternative hypothesis: true location shift is not equal to 0
+# t = 1.183, df = 9, p-value = 0.2671
+# alternative hypothesis: true difference in means is not equal to 0
 # 95 percent confidence interval:
-#   -160.375  351.905
+#   -119.6521  381.9821
 # sample estimates:
-#   (pseudo)median 
-# 186.3 
+#   mean of the differences 
+# 131.165
 
 # TN
 wilcox.test(storm.in.TN$TN.x, storm.in.TN$TN.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -856,37 +860,37 @@ tot.wq.sum <- tot.wq %>%
   summarise_at(vars(-samp.date), funs(median, max, min, var, sd))
 # View(tot.wq.sum)
 
-## In/out % reduction
+## In/out Removal efficiency 
 wq.reduc <- tot.wq %>%
   group_by(samp.date) %>%
-  transmute(TKN.reduc = ((TKN.x - TKN.y) / TKN.x) * 100,
-            NOx.reduc = ((NOx.x - NOx.y) / NOx.x) * 100,
-            NH3N.reduc = ((NH3N.x - NH3N.y) / NH3N.x) * 100,
-            TN.reduc = ((TN.x - TN.y) / TN.x) * 100,
-            TP.reduc = ((TP.x - TP.y) / TP.x) * 100,
-            OP.reduc = ((OP.x - OP.y) / OP.x) * 100,
-            TSS.reduc = ((TSS.x - TSS.y) / TSS.x) * 100,
-            ON.reduc = ((ON.x - ON.y) / ON.x) * 100,
-            PBP.reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
+  transmute(TKN.reduc = ((TKN.x - TKN.y) / TKN.y) * 100,
+            NOx.reduc = ((NOx.x - NOx.y) / NOx.y) * 100,
+            NH3N.reduc = ((NH3N.x - NH3N.y) / NH3N.y) * 100,
+            TN.reduc = ((TN.x - TN.y) / TN.y) * 100,
+            TP.reduc = ((TP.x - TP.y) / TP.y) * 100,
+            OP.reduc = ((OP.x - OP.y) / OP.y) * 100,
+            TSS.reduc = ((TSS.x - TSS.y) / TSS.y) * 100,
+            ON.reduc = ((ON.x - ON.y) / ON.y) * 100,
+            PBP.reduc = ((PBP.x - PBP.y) / PBP.y) * 100)
 # View(wq.reduc)
 # median(wq.reduc$TKN.reduc)
-# returns: 4.0
+# returns: 4.5
 # median(wq.reduc$NOx.reduc)
-# returns: -77.3
+# returns: -43.6
 # median(wq.reduc$NH3N.reduc)
-# returns: 10.9
+# returns: 12.5
 # median(wq.reduc$TN.reduc)
-# returns: 3.43
+# returns: 4.0
 # median(wq.reduc$TP.reduc)
-# returns: 25.62
+# returns: 34.6
 # median(wq.reduc$OP.reduc)
-# returns: -52.5
+# returns: -34.4
 # median(wq.reduc$TSS.reduc)
-# returns: 69.21
+# returns: 229.2
 # median(wq.reduc$ON.reduc)
-# returns: 7.42
+# returns: 8.2
 # median(wq.reduc$PBP.reduc)
-# returns: 36.98
+# returns: 60.7
 
 ## storm flow in/out pollutant testing significance
 # TKN
@@ -901,7 +905,7 @@ wilcox.test(tot.wq$TKN.x, tot.wq$TKN.y, alternative = "t", paired = TRUE, exact 
 #   -189.2462 2643.5184
 # sample estimates:
 #   (pseudo)median 
-# 183.7802  
+# 183.7802 
 
 # NOx
 wilcox.test(tot.wq$NOx.x, tot.wq$NOx.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -929,7 +933,7 @@ wilcox.test(tot.wq$TN.x, tot.wq$TN.y, alternative = "t", paired = TRUE, exact = 
 #   -368.2368 2303.4728
 # sample estimates:
 #   (pseudo)median 
-# 85.227 
+# 85.227
 
 # NH3N
 wilcox.test(tot.wq$NH3N.x, tot.wq$NH3N.y, alternative = "t", paired = TRUE, exact = TRUE, conf.int = TRUE, conf.level = 0.95 )
@@ -1142,7 +1146,7 @@ ggplot(data = TSS.ex)+
   labs(x = "Exceedance Probability", y = "Log(Concentration (mg/L))")
 
 
-## Efficiency Ratio v. accumulation regression
+## Influent/Efluent Ratio v. accumulation regression
 Accumulation <- c(0.71,0.5,1.13,1.01,0.84,0.7,0.77,1.74,0.93,1.65) * 25.4
 tot.wq[,"Accumulation"] <- Accumulation
 

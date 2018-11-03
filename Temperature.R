@@ -193,182 +193,212 @@ event.92 <- MRSC.temp.m %>%
   melt(id = "timestamp")
 # View(event.26)
 
-# plot
-ggplot(event.92)+
-  geom_line(aes(x = timestamp, y = value, color = variable, linetype = variable))+
-  scale_color_manual(values = c("black", "red", "purple", "blue", "green"),labels = c("Air", "IN1", "IN2", "WELL", "OUT"))+
-  scale_linetype_manual(values = c(1,2,3,4,5), labels = c("Air", "IN1", "IN2", "WELL", "OUT"))+
-  labs(y = "Temperature (°C)", x = "Date")+
-  theme(legend.position = "bottom", 
-        legend.title = element_blank(),
-        plot.title = element_text(hjust = 0.5),
-        text = element_text(size = 18))
+event.92.rain <- MRSC.temp.m %>%
+  subset(storm.index == 92) %>%
+  select(timestamp,
+         rainfall.mm) %>%
+  melt(id = "timestamp")
+# View(event.92.rain)
 
-## statistics
+# plot
+P1 <- ggplot()+
+        geom_line(data = event.92, aes(x = timestamp, y = value, color = variable, linetype = variable), size = 1)+
+        scale_color_manual(values = c("black", "red", "purple", "blue", "green", "orange"),labels = c("Air", "IN1", "IN2", "WELL","Trout Threshold","OUT"))+
+        scale_linetype_manual(values = c(1,2,3,4,5,6), labels = c("Air", "IN1", "IN2", "WELL","Trout Threshold","OUT"))+
+        geom_hline(aes(yintercept = 21, color = "Trout Threshold", linetype = "Trout Threshold"), size = 1)+
+        labs(y = "Temperature (°C)", x = "Date")+
+        theme(legend.position = "bottom", 
+              legend.title = element_blank(),
+              plot.title = element_text(hjust = 0.5),
+              text = element_text(size = 18))
+
+P2 <- ggplot(data = event.92.rain)+
+         geom_bar(aes(x = timestamp, y = value, color = variable, linetype = variable), stat = "identity", size = 1)+
+         labs(y = "Rainfall (mm)", x = "Date")+
+  scale_y_reverse()+
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size = 18),
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.text = element_blank())
+gA <- ggplotGrob(P2)
+gB <- ggplotGrob(P1)
+grid::grid.newpage()
+grid.arrange(gA, gB, heights = c(1/5, 4/5), ncol=1) 
+
+## Event Temps for stats
+# May - October
+event.temps.short <-event.temps %>%
+  subset(start >= "2018-05-01")
+# View(event.temps.short) 
+  
+  ## statistics
 # median in1 and in2
-# wilcox.test(event.temps$in1.med, event.temps$in2.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.med, event.temps.short$in2.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in1.med and event.temps$in2.med
-# V = 344, p-value = 5.662e-07
+# data:  event.temps.short$in1.med and event.temps.short$in2.med
+# V = 45, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   0.7666667 1.3461111
+#   0.7663889 1.5327778
 # sample estimates:
 #   (pseudo)median 
-# 1.033889
+# 1.1475 
 
 # max in1 and in2
-# wilcox.test(event.temps$in1.max, event.temps$in2.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.max, event.temps.short$in2.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in1.max and event.temps$in2.max
-# V = 285, p-value = 0.004279
+# data:  event.temps.short$in1.max and event.temps.short$in2.max
+# V = 35, p-value = 0.1641
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   0.3616667 2.1141667
+#   -1.662778  3.226667
 # sample estimates:
 #   (pseudo)median 
-# 1.336111 
+# 1.399722
 
 # median in1 and well
-# wilcox.test(event.temps$in1.med, event.temps$well.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.med, event.temps.short$well.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in1.med and event.temps$well.med
-# V = 230, p-value = 0.1731
+# data:  event.temps.short$in1.med and event.temps.short$well.med
+# V = 45, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -0.3036111  1.8613889
+#   1.837222 3.259167
 # sample estimates:
 #   (pseudo)median 
-# 0.7738889 
+# 2.544722 
 
 # max in1 and well
-# wilcox.test(event.temps$in1.max, event.temps$well.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.max, event.temps.short$well.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in1.max and event.temps$well.max
-# V = 321, p-value = 6.032e-05
+# data:  event.temps.short$in1.max and event.temps.short$well.max
+# V = 45, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   1.860556 4.973889
+#   4.803611 8.733333
 # sample estimates:
 #   (pseudo)median 
-# 3.354444 
+# 6.825  
 
 # median in2 and well
-# wilcox.test(event.temps$in2.med, event.temps$well.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in2.med, event.temps.short$well.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in2.med and event.temps$well.med
-# V = 155, p-value = 0.6171
+# data:  event.temps.short$in2.med and event.temps.short$well.med
+# V = 45, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -1.1633333  0.6705556
+#   0.8680556 1.9061111
 # sample estimates:
 #   (pseudo)median 
-# -0.3488889 
+# 1.436667  
 
 # max in2 and well
-# wilcox.test(event.temps$in2.max, event.temps$well.max, alternative = "g", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in2.max, event.temps.short$well.max, alternative = "g", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$in2.max and event.temps$well.max
-# V = 288, p-value = 0.001615
+# data:  event.temps.short$in2.max and event.temps.short$well.max
+# V = 45, p-value = 0.001953
 # alternative hypothesis: true location shift is greater than 0
 # 95 percent confidence interval:
-#   0.8502778       Inf
+#   3.8325    Inf
 # sample estimates:
 #   (pseudo)median 
-# 1.951389 
+# 5.021389 
 
 # median in2 and out
-# wilcox.test(event.temps$in2.med, event.temps$out.med, alternative = "l", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in2.med, event.temps.short$out.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
-# Wilcoxon signed rank test with continuity correction
+# Wilcoxon signed rank test
 # 
-# data:  event.temps$in2.med and event.temps$out.med
-# V = 17.5, p-value = 8.11e-05
-# alternative hypothesis: true location shift is less than 0
+# data:  event.temps.short$in2.med and event.temps.short$out.med
+# V = 1, p-value = 0.007812
+# alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -Inf -0.4800211
+#   -1.2500000 -0.4352778
 # sample estimates:
 #   (pseudo)median 
-# -0.6968198
+# -0.8627778 
 
 # max in2 and out
-# wilcox.test(event.temps$in2.max, event.temps$out.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in2.max, event.temps.short$out.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
-# Wilcoxon signed rank test with continuity correction
+# Wilcoxon signed rank test
 # 
-# data:  event.temps$in2.max and event.temps$out.max
-# V = 134, p-value = 0.9152
+# data:  event.temps.short$in2.max and event.temps.short$out.max
+# V = 30, p-value = 0.4258
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -0.8716881  0.8408425
+#   -1.899722  3.214722
 # sample estimates:
 #   (pseudo)median 
-# -0.09485565  
+# 0.5391667 
 
 # median well and out
-# wilcox.test(event.temps$well.med, event.temps$out.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$well.med, event.temps.short$out.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$well.med and event.temps$out.med
-# V = 146, p-value = 0.4678
+# data:  event.temps.short$well.med and event.temps.short$out.med
+# V = 0, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -1.4050000  0.6033333
+#   -2.963889 -1.533333
 # sample estimates:
 #   (pseudo)median 
-# -0.2913889
+# -2.296667 
 
 # max well and out
-# wilcox.test(event.temps$well.max,event.temps$out.max,   alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$well.max,event.temps.short$out.max,   alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test
 # 
-# data:  event.temps$well.max and event.temps$out.max
-# V = 53, p-value = 0.001165
+# data:  event.temps.short$well.max and event.temps.short$out.max
+# V = 0, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   -3.3083333 -0.8622222
+#   -6.382778 -3.130000
 # sample estimates:
 #   (pseudo)median 
-# -2.105278 
+# -4.522778 
 
 # median in1 and out
-# wilcox.test(event.temps$in1.med, event.temps$out.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.med, event.temps.short$out.med, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
 # Wilcoxon signed rank test with continuity correction
 # 
-# data:  event.temps$in1.med and event.temps$out.med
-# V = 266, p-value = 0.0001053
+# data:  event.temps.short$in1.med and event.temps.short$out.med
+# V = 36, p-value = 0.01427
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   0.2419189 0.5705846
+#   0.1447614 0.7152045
 # sample estimates:
 #   (pseudo)median 
-# 0.3611517 
+# 0.33375 
 
 # max in1 and out
-# wilcox.test(event.temps$in1.max, event.temps$out.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
+# wilcox.test(event.temps.short$in1.max, event.temps.short$out.max, alternative = "t", paired = TRUE, conf.int = TRUE, conf.level = 0.95)
 # returns:
-# Wilcoxon signed rank test with continuity correction
+# Wilcoxon signed rank test
 # 
-# data:  event.temps$in1.max and event.temps$out.max
-# V = 322, p-value = 1.882e-05
+# data:  event.temps.short$in1.max and event.temps.short$out.max
+# V = 45, p-value = 0.003906
 # alternative hypothesis: true location shift is not equal to 0
 # 95 percent confidence interval:
-#   0.7205007 1.7794725
+#   0.785000 3.160278
 # sample estimates:
 #   (pseudo)median 
-# 1.29499 
+# 1.708889 
