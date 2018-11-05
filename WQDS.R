@@ -163,10 +163,10 @@ base.TKN1 <- base.out %>%
 base.TKN <- left_join(base.TKN, base.TKN1, "samp.date")
 # % reduction
 base.TKN <- base.TKN %>%
-  mutate(reduc = ((TKN.x - TKN.y) / TKN.y) * 100)
+  mutate(reduc = ((TKN.x - TKN.y) / TKN.x) * 100)
 # View(base.TKN)
 # median(base.TKN$reduc)
-# return: 19.8
+# return: 16.5
 
 ## NOx analysis
 base.NOx <- base.in %>%
@@ -180,10 +180,10 @@ base.NOx1 <- base.out %>%
 base.NOx <- left_join(base.NOx, base.NOx1, "samp.date")
 # % reduction
 base.NOx <- base.NOx %>%
-  mutate(reduc = ((NOx.x - NOx.y) / NOx.y) * 100)
+  mutate(reduc = ((NOx.x - NOx.y) / NOx.x) * 100)
 # View(base.NOx)
 # median(base.NOx$reduc)
-# return: 78.7
+# return: 44.0
 
 ## TN analysis
 base.TN <- base.in %>%
@@ -203,10 +203,10 @@ base.TN1 <- base.out %>%
 base.TN <- left_join(base.TN, base.TN1, "samp.date")
 # % reduction
 base.TN <- base.TN %>%
-  mutate(reduc = ((TN.x - TN.y) / TN.y) * 100)
+  mutate(reduc = ((TN.x - TN.y) / TN.x) * 100)
 # View(base.TN)
 # median(base.TN$reduc)
-# return: 28.8
+# return: 22.3
 
 ## NH3N analysis
 base.NH3N <- base.in %>%
@@ -220,10 +220,10 @@ base.NH3N1 <- base.out %>%
 base.NH3N <- left_join(base.NH3N, base.NH3N1, "samp.date")
 # % reduction
 base.NH3N <- base.NH3N %>%
-  mutate(reduc = ((NH3N.x - NH3N.y) / NH3N.y) * 100)
+  mutate(reduc = ((NH3N.x - NH3N.y) / NH3N.x) * 100)
 # View(base.NH3N)
 # median(base.NH3N$reduc)
-# return: 19.9
+# return: 13.8
 
 ## TP analysis
 base.TP <- base.in %>%
@@ -237,10 +237,10 @@ base.TP1 <- base.out %>%
 base.TP <- left_join(base.TP, base.TP1, "samp.date")
 # % reduction
 base.TP <- base.TP %>%
-  mutate(reduc = ((TP.x - TP.y) / TP.y) * 100)
+  mutate(reduc = ((TP.x - TP.y) / TP.x) * 100)
 # View(base.TP)
 # median(base.TP$reduc)
-# return: 2.7
+# return: 2.6
 
 ## OP analysis
 base.OP <- base.in %>%
@@ -254,10 +254,10 @@ base.OP1 <- base.out %>%
 base.OP <- left_join(base.OP, base.OP1, "samp.date")
 # % reduction
 base.OP <- base.OP %>%
-  mutate(reduc = ((OP.x - OP.y) / OP.y) * 100)
+  mutate(reduc = ((OP.x - OP.y) / OP.x) * 100)
 # View(base.OP)
 # median(base.OP$reduc)
-# return: -3.9
+# return: -4.1
 
 ## TSS analysis
 base.TSS <- base.in %>%
@@ -271,10 +271,10 @@ base.TSS1 <- base.out %>%
 base.TSS <- left_join(base.TSS, base.TSS1, "samp.date")
 # % reduction
 base.TSS <- base.TSS %>%
-  mutate(reduc = ((TSS.x - TSS.y) / TSS.y) * 100)
+  mutate(reduc = ((TSS.x - TSS.y) / TSS.x) * 100)
 # View(base.TSS)
 # median(base.TSS$reduc)
-# return: 50.1
+# return: 33.0
 
 ## TSS.extra analysis
 base.TSS.extra <- base.in %>%
@@ -288,10 +288,10 @@ base.TSS.extra1 <- base.out %>%
 base.TSS.extra <- left_join(base.TSS.extra, base.TSS.extra1, "samp.date")
 # % reduction
 base.TSS.extra <- base.TSS.extra %>%
-  mutate(reduc = ((TSS.extra.x - TSS.extra.y) / TSS.extra.y) * 100)
+  mutate(reduc = ((TSS.extra.x - TSS.extra.y) / TSS.extra.x) * 100)
 # View(base.TSS.extra)
 # median(base.TSS.extra$reduc)
-# return: 11.9
+# return: 10.5
 
 ## ON analysis
 base.ON <- base.in %>%
@@ -863,34 +863,34 @@ tot.wq.sum <- tot.wq %>%
 ## In/out Removal efficiency 
 wq.reduc <- tot.wq %>%
   group_by(samp.date) %>%
-  transmute(TKN.reduc = ((TKN.x - TKN.y) / TKN.y) * 100,
-            NOx.reduc = ((NOx.x - NOx.y) / NOx.y) * 100,
-            NH3N.reduc = ((NH3N.x - NH3N.y) / NH3N.y) * 100,
-            TN.reduc = ((TN.x - TN.y) / TN.y) * 100,
-            TP.reduc = ((TP.x - TP.y) / TP.y) * 100,
-            OP.reduc = ((OP.x - OP.y) / OP.y) * 100,
-            TSS.reduc = ((TSS.x - TSS.y) / TSS.y) * 100,
-            ON.reduc = ((ON.x - ON.y) / ON.y) * 100,
-            PBP.reduc = ((PBP.x - PBP.y) / PBP.y) * 100)
+  transmute(TKN.reduc = ((TKN.x - TKN.y) / TKN.x) * 100,
+            NOx.reduc = ((NOx.x - NOx.y) / NOx.x) * 100,
+            NH3N.reduc = ((NH3N.x - NH3N.y) / NH3N.x) * 100,
+            TN.reduc = ((TN.x - TN.y) / TN.x) * 100,
+            TP.reduc = ((TP.x - TP.y) / TP.x) * 100,
+            OP.reduc = ((OP.x - OP.y) / OP.x) * 100,
+            TSS.reduc = ((TSS.x - TSS.y) / TSS.x) * 100,
+            ON.reduc = ((ON.x - ON.y) / ON.x) * 100,
+            PBP.reduc = ((PBP.x - PBP.y) / PBP.x) * 100)
 # View(wq.reduc)
 # median(wq.reduc$TKN.reduc)
-# returns: 4.5
-# median(wq.reduc$NOx.reduc)
-# returns: -43.6
-# median(wq.reduc$NH3N.reduc)
-# returns: 12.5
-# median(wq.reduc$TN.reduc)
 # returns: 4.0
+# median(wq.reduc$NOx.reduc)
+# returns: -77.3
+# median(wq.reduc$NH3N.reduc)
+# returns: 10.9
+# median(wq.reduc$TN.reduc)
+# returns: 3.4
 # median(wq.reduc$TP.reduc)
-# returns: 34.6
+# returns: 25.6
 # median(wq.reduc$OP.reduc)
-# returns: -34.4
+# returns: -52.5
 # median(wq.reduc$TSS.reduc)
-# returns: 229.2
+# returns: 69.2
 # median(wq.reduc$ON.reduc)
-# returns: 8.2
+# returns: 7.4
 # median(wq.reduc$PBP.reduc)
-# returns: 60.7
+# returns: 37.0
 
 ## storm flow in/out pollutant testing significance
 # TKN
