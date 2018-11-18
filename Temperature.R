@@ -9,6 +9,7 @@ require("gridExtra")    # Arrange multiple ggplots in same figure (multi-panels)
 require("scales")       #
 require("RColorBrewer") # creates nice color schemes
 require("corrplot")     # A graphical display of a correlation matrix between all combinations of variables
+require("cowplot")
 ## Statistical analysis
 require("stats")        # Lots of stats stuff
 ## Data management
@@ -226,7 +227,8 @@ P2 <- ggplot(data = event.92.rain)+
 gA <- ggplotGrob(P2)
 gB <- ggplotGrob(P1)
 grid::grid.newpage()
-grid.arrange(gA, gB, heights = c(1/5, 4/5), ncol=1) 
+grid::grid.draw(rbind(gA, gB))
+plot_grid(gA, gB, rel_heights = c(1, 4), ncol=1, align = "v") 
 
 ## Event Temps for stats
 # May - October
